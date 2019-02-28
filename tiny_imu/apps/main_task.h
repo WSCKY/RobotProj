@@ -14,9 +14,4 @@
 #include "kyLink.h"
 #include "mpu9250.h"
 
-#if FREERTOS_ENABLED
-#include "imu_task.h"
-#include "com_task.h"
-#endif /* FREERTOS_ENABLED */
-
 #endif /* APPS_MAIN_TASK_H_ */
