@@ -1,0 +1,25 @@
+menu "Project Configuration"
+
+config LED_GPIO
+    int "LED GPIO number"
+	range 0 34
+	default 26
+	help
+		GPIO number (IOxx) to drive LED.
+
+		Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to blink.
+
+		GPIOs 35-39 are input-only so cannot be used as outputs.
+
+config BTN_GPIO
+    int "Button GPIO number"
+        range 0 34
+        default 34
+        help
+                GPIO number (IOxx) to detect push-key.
+
+                Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to gpio input.
+
+                GPIOs 35-39 are input-only so cannot be used as outputs.
+
+endmenu
