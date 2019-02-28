@@ -19,6 +19,10 @@
 #include "cmsis_os.h"
 #endif /* FREERTOS_ENABLED */
 
+#define UNUSED_VARIABLE(X)                       ((void)(X))
+#define UNUSED_PARAMETER(X)                      UNUSED_VARIABLE(X)
+#define UNUSED_RETURN_VALUE(X)                   UNUSED_VARIABLE(X)
+
 void StartThread(void const * argument);
 
 #endif /* SYSCONFIG_H_ */

@@ -26,7 +26,7 @@
 #define IMU_SPI_SLOW_RATE         SPI_BaudRatePrescaler_128 /* 48 / 64 = 0.75MHz */
 #define IMU_SPI_FAST_RATE         SPI_BaudRatePrescaler_8   /* 48 / 8 = 6MHz */
 
-#define MPU_DATA_DEPTH            (1 << 2)
+#define MPU_DATA_DEPTH            (1 << 1)
 #define MPU_BUFF_MASK             (MPU_DATA_DEPTH - 1)
 
 uint8_t mpu9250_init(void);

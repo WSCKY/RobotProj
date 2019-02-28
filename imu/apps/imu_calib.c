@@ -1,5 +1,5 @@
 #include "imu_calib.h"
-#include "MathFunction.h"
+#include "maths.h"
 
 static IMU_RAW raw;
 static IMU_RAW calib_raw;
@@ -10,10 +10,10 @@ static uint8_t gyr_calib_flag = 0; /* imu calibrated flag */
 static QueueHandle_t q_mpu_unit = NULL; /* queue to send message to estimator */
 
 /* debug data. */
-static COM_MSG_DEF dbg_msg;
-static IMU_INFO_DEF imu_info;
-static void debug_msg_init(void);
-static void com_msg_update(void);
+//static COM_MSG_DEF dbg_msg;
+//static IMU_INFO_DEF imu_info;
+//static void debug_msg_init(void);
+//static void com_msg_update(void);
 
 static void calib_loop(void);
 
@@ -21,9 +21,9 @@ void CalibTask(void const *argument)
 {
   QueueHandle_t q_mpu = *((QueueHandle_t *)argument);
 
-  debug_msg_init();
+//  debug_msg_init();
 
-  q_mpu_unit = xQueueCreate(5, sizeof(IMU_UNIT));
+  q_mpu_unit = xQueueCreate(2, sizeof(IMU_UNIT));
   osThreadDef(EST, AttitudeEstTask, osPriorityHigh, 0, configMINIMAL_STACK_SIZE * 4);
   osThreadCreate(osThread(EST), &q_mpu_unit);
 
@@ -42,7 +42,7 @@ void CalibTask(void const *argument)
 
       calib_loop();
 
-      com_msg_update();
+//      com_msg_update();
     }
   }
 }
@@ -93,30 +93,30 @@ static void calib_loop(void)
     TimeStart = TimeCurrent;
   }
 }
-
-static void debug_msg_init(void)
-{
-  dbg_msg.len = sizeof(IMU_INFO_DEF);
-  dbg_msg.type = TYPE_IMU_INFO_Resp;
-  dbg_msg.pointer = (void *)&imu_info;
-}
-
-static void com_msg_update(void)
-{
-  static uint32_t time_stamp = 0;
-  static QueueHandle_t q_com = NULL;
-  if(q_com == NULL) {
-    q_com = *get_com_msg_send_queue();
-    return;
-  }
-  if(_Get_Millis() - time_stamp > 20) {
-    imu_info.accX = calib_raw.accX;
-    imu_info.accY = calib_raw.accY;
-    imu_info.accZ = calib_raw.accZ;
-    imu_info.gyrX = calib_raw.gyrX;
-    imu_info.gyrY = calib_raw.gyrY;
-    imu_info.gyrZ = calib_raw.gyrZ;
-    xQueueSend(q_com, (void *)&dbg_msg, 1);
-    time_stamp = _Get_Millis();
-  }
-}
+//
+//static void debug_msg_init(void)
+//{
+//  dbg_msg.len = sizeof(IMU_INFO_DEF);
+//  dbg_msg.type = TYPE_IMU_INFO_Resp;
+//  dbg_msg.pointer = (void *)&imu_info;
+//}
+//
+//static void com_msg_update(void)
+//{
+//  static uint32_t time_stamp = 0;
+//  static QueueHandle_t q_com = NULL;
+//  if(q_com == NULL) {
+//    q_com = *get_com_msg_send_queue();
+//    return;
+//  }
+//  if(_Get_Millis() - time_stamp > 20) {
+//    imu_info.accX = calib_raw.accX;
+//    imu_info.accY = calib_raw.accY;
+//    imu_info.accZ = calib_raw.accZ;
+//    imu_info.gyrX = calib_raw.gyrX;
+//    imu_info.gyrY = calib_raw.gyrY;
+//    imu_info.gyrZ = calib_raw.gyrZ;
+//    xQueueSend(q_com, (void *)&dbg_msg, 1);
+//    time_stamp = _Get_Millis();
+//  }
+//}

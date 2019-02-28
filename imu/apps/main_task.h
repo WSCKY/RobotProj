@@ -12,4 +12,7 @@
 #include "kyLink.h"
 #include "mpu9250.h"
 
+#include "imu_task.h"
+#include "com_task.h"
+
 #endif /* APPS_MAIN_TASK_H_ */

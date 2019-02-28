@@ -21,6 +21,7 @@ INCS = -I$(TopPath)/startup \
        -I$(TopPath)/driver/cmsis/device \
        -I$(TopPath)/driver/cmsis/core \
        -I$(TopPath)/driver/stdriver/inc \
+       -I$(TopPath)/middleware/maths \
        -I$(TopPath)/middleware/kylink \
        -I$(TopPath)/middleware/freertos/inc
 
@@ -86,6 +87,7 @@ all: $(ProjName).elf | $(BuildPath)
 -include driver/periph/subdir.mk
 -include driver/device/subdir.mk
 -include driver/stdriver/src/subdir.mk
+-include middleware/maths/subdir.mk
 -include middleware/kylink/subdir.mk
 -include middleware/freertos/src/subdir.mk
 -include subdir.mk

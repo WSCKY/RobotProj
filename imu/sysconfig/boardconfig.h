@@ -12,8 +12,8 @@
 
 #define SYS_XCLK_FREQUENCY                  (8000000)
 
-#define SYS_HEAP_SIZE                       0x400
-#define SYS_STACK_SIZE                      0x400
+#define SYS_HEAP_SIZE                       0x200
+#define SYS_STACK_SIZE                      0x200
 
 #define SYS_BOOT_ORIGIN                     0x08000000
 #define SYS_BOOT_LENGTH                     8K

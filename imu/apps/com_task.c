@@ -1,27 +1,27 @@
 #include "com_task.h"
 
-__ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __ALIGN_END;
+//__ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __ALIGN_END;
 
 static COM_MSG_DEF msg;
 static QueueHandle_t com_msg_q = NULL;
 
-static CommPackageDef TxPacket = {kySTX1, kySTX2};
-static CommPackageDef RxPacket = {kySTX1, kySTX2};
+static CommPackageDef TxPacket;// = {kySTX1, kySTX2};
+static CommPackageDef RxPacket;// = {kySTX1, kySTX2};
 
 static void COM_TX_Thread(void const *argument);
 static void COM_RX_Thread(void const *argument);
 
-static void kyLinkByteHandler(uint8_t Data);
-static void kyLinkBytesHandler(uint8_t *p, uint32_t l);
+//static void kyLinkByteHandler(uint8_t Data);
+//static void kyLinkBytesHandler(uint8_t *p, uint32_t l);
 
 void COM_Thread(void const *argument)
 {
   UNUSED_PARAMETER(argument);
 
   /* hardware initialize. */
-  ComPort_Init(kyLinkByteHandler);
-  USB_CDC_CallbackRegistry(kyLinkBytesHandler); /* register callback handler function */
-  USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb);
+//  ComPort_Init(kyLinkByteHandler);
+//  USB_CDC_CallbackRegistry(kyLinkBytesHandler); /* register callback handler function */
+//  USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb);
 
   kyLink_Init();
 
@@ -71,14 +71,14 @@ QueueHandle_t* get_com_msg_send_queue(void)
   return &com_msg_q;
 }
 
-static void kyLinkBytesHandler(uint8_t *p, uint32_t l)
-{
-  while(l --) {
-    kyLink_DecodeProcess(*p ++);
-  }
-}
-
-static void kyLinkByteHandler(uint8_t Data)
-{
-//  kyLink_DecodeProcess(Data);
-}
+//static void kyLinkBytesHandler(uint8_t *p, uint32_t l)
+//{
+//  while(l --) {
+//    kyLink_DecodeProcess(*p ++);
+//  }
+//}
+//
+//static void kyLinkByteHandler(uint8_t Data)
+//{
+////  kyLink_DecodeProcess(Data);
+//}

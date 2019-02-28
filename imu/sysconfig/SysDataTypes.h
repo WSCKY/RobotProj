@@ -8,7 +8,9 @@
 #ifndef SYSCONFIG_SYSDATATYPES_H_
 #define SYSCONFIG_SYSDATATYPES_H_
 
+#if !defined(__packed)
 #define __packed __attribute__((packed))
+#endif /* !defined(__packed) */
 
 typedef struct {
 	int16_t accX;

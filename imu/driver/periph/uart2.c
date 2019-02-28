@@ -17,13 +17,17 @@ static void dma_config(void);
 
 static PortRecvByteCallback pCallback = 0;
 
-void uart2_init(void)
+void uart2_init(PortRecvByteCallback p)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
 	if(_uart2_init_flag == 1) return; // already init.
+
+	if(p != 0) {
+		pCallback = p;
+	}
 
 	/* Enable GPIO clock */
 	RCC_AHBPeriphClockCmd(UART2_GPIO_CLK, ENABLE);

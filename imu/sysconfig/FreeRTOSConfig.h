@@ -96,7 +96,7 @@
 #define configCPU_CLOCK_HZ			( SystemCoreClock )
 #define configTICK_RATE_HZ			( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES			(  7 )
-#define configMINIMAL_STACK_SIZE		( ( uint16_t ) 128 )
+#define configMINIMAL_STACK_SIZE		( ( uint16_t ) 64 )
 #if defined(__GNUC__)
  #define configTOTAL_HEAP_SIZE			( ( size_t ) ( 3 * 1024 ) )
 #else

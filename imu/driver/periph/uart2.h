@@ -38,7 +38,8 @@
 
 typedef void (*PortRecvByteCallback)(uint8_t Data);
 
-void uart2_init(void);
+void uart2_init(PortRecvByteCallback p);
+
 void uart2_TxByte(uint8_t c);
 void uart2_TxBytes(uint8_t *p, uint32_t l);
 #if UART2_DMA_ENABLE
