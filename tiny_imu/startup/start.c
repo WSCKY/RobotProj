@@ -11,7 +11,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "SysConfig.h"
 #include "boardconfig.h"
+#if FREERTOS_ENABLED
 #include "cmsis_os.h"
+#endif /* FREERTOS_ENABLED */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -40,11 +42,14 @@ int main_app(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
 	_TimeTicksInit();
-
+#if FREERTOS_ENABLED
 	osThreadDef(Start, StartThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadCreate (osThread(Start), NULL);
 	/* Start scheduler */
 	osKernelStart();
+#else
+	StartThread(0);
+#endif /* FREERTOS_ENABLED */
 	/* We should never get here as control is now taken by the scheduler */
 	for( ;; );
 }

@@ -6,8 +6,8 @@
  */
 
 #include "main_task.h"
-#include "SysConfig.h"
 
+#if FREERTOS_ENABLED
 osThreadId IMU_ThreadId;
 //osThreadId COM_ThreadId;
 
@@ -16,7 +16,7 @@ osThreadId IMU_ThreadId;
   * @param  argument not used
   * @retval None
   */
-void StartThread(void const * argument)
+void StartThread(void const * arg)
 {
 	uart2_init(0);
 	osDelay(50);
@@ -39,21 +39,32 @@ void StartThread(void const * argument)
 	/* Delete the Init Thread */
 	osThreadTerminate(NULL);
 	for(;;);
-
-//	for(;;) {
-////		if(mpu_pull_new(&raw)) {
-////			uart2_TxBytes((uint8_t *)"GOT NEW\n", 8);
-////			osDleay(200);
-////		}
-//
-//		osDelay(200);
-//		uart2_TxBytesDMA((uint8_t *)"running ... /\r\0", 15);
-//		osDelay(200);
-//		uart2_TxBytesDMA((uint8_t *)"running ... -\r\0", 15);
-//		osDelay(200);
-//		uart2_TxBytesDMA((uint8_t *)"running ... \\\r\0", 15);
-//		osDelay(200);
-//		uart2_TxBytesDMA((uint8_t *)"running ... |\r\0", 15);
-//		osDelay(200);
-//	}
 }
+#else
+/**
+  * @brief  Start Thread
+  * @param  argument not used
+  * @retval None
+  */
+void StartThread(void const * arg)
+{
+	uart2_init(0);
+	_delay_ms(50);
+	mpu9250_init();
+	for(;;) {
+//		if(mpu_pull_new(&raw)) {
+//			uart2_TxBytes((uint8_t *)"GOT NEW\n", 8);
+//			osDleay(200);
+//		}
+
+		uart2_TxBytesDMA((uint8_t *)"running ... /\r\0", 15);
+		_delay_ms(200);
+		uart2_TxBytesDMA((uint8_t *)"running ... -\r\0", 15);
+		_delay_ms(200);
+		uart2_TxBytesDMA((uint8_t *)"running ... \\\r\0", 15);
+		_delay_ms(200);
+		uart2_TxBytesDMA((uint8_t *)"running ... |\r\0", 15);
+		_delay_ms(200);
+	}
+}
+#endif /* FREERTOS_ENABLED */

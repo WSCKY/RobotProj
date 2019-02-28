@@ -22,8 +22,7 @@ INCS = -I$(TopPath)/startup \
        -I$(TopPath)/driver/cmsis/core \
        -I$(TopPath)/driver/stdriver/inc \
        -I$(TopPath)/middleware/maths \
-       -I$(TopPath)/middleware/kylink \
-       -I$(TopPath)/middleware/freertos/inc
+       -I$(TopPath)/middleware/kylink
 
 LD_INCS = -I$(TopPath)/sysconfig
 
@@ -89,7 +88,6 @@ all: $(ProjName).elf | $(BuildPath)
 -include driver/stdriver/src/subdir.mk
 -include middleware/maths/subdir.mk
 -include middleware/kylink/subdir.mk
--include middleware/freertos/src/subdir.mk
 -include subdir.mk
 -include objects.mk
 

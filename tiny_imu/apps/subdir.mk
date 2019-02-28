@@ -6,24 +6,15 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ./apps/main_task.c \
-./apps/imu_task.c \
-./apps/com_task.c \
-./apps/imu_calib.c \
-./apps/AttitudeEst.c
+./apps/AttEst.c
 
 OBJS += \
 $(BuildPath)/apps/main_task.o \
-$(BuildPath)/apps/imu_task.o \
-$(BuildPath)/apps/com_task.o \
-$(BuildPath)/apps/imu_calib.o \
-$(BuildPath)/apps/AttitudeEst.o
+$(BuildPath)/apps/AttEst.o
 
 C_DEPS += \
 $(BuildPath)/apps/main_task.d \
-$(BuildPath)/apps/imu_task.d \
-$(BuildPath)/apps/com_task.d \
-$(BuildPath)/apps/imu_calib.d \
-$(BuildPath)/apps/AttitudeEst.d
+$(BuildPath)/apps/AttEst.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 

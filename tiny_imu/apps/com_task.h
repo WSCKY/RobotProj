@@ -1,6 +1,8 @@
 #ifndef __COM_TASK_H
 #define __COM_TASK_H
 
+#if FREERTOS_ENABLED
+
 #include "kyLink.h"
 
 //#include "ComPort.h"
@@ -19,5 +21,7 @@ typedef struct {
 
 void COM_Thread(void const *argument);
 QueueHandle_t* get_com_msg_send_queue(void);
+
+#endif /* FREERTOS_ENABLED */
 
 #endif /* __COM_TASK_H */

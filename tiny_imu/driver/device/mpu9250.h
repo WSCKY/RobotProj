@@ -16,6 +16,10 @@
 #define mpu_delay                      _delay_ms
 #endif
 
+#if !FREERTOS_ENABLED
+#define MPU_DATA_UPDATE_HOOK_ENABLE    (1)
+#endif /* !FREERTOS_ENABLED */
+
 #define imu_spi_init              spi1_init
 #define imu_int_init              intio_init
 #define imu_int_setcallback       intio_set_irq_handler
@@ -33,8 +37,12 @@ uint8_t mpu9250_init(void);
 #if FREERTOS_ENABLED
 QueueHandle_t* mpu_queue_get(void);
 #else
+#if MPU_DATA_UPDATE_HOOK_ENABLE
+void mpu_update_hook(IMU_RAW *pRaw);
+#else
 uint8_t mpu_push_new(IMU_RAW *pRaw);
 uint8_t mpu_pull_new(IMU_RAW *pRaw);
+#endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
 void mpu_raw2unit(IMU_RAW *raw, IMU_UNIT *unit);
 void mpu_set_gyr_off(int16_t x, int16_t y, int16_t z);

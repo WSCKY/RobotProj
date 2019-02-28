@@ -11,8 +11,10 @@ static IMU_RAW mpu_raw_data;
 #if FREERTOS_ENABLED
 static QueueHandle_t mpu_queue = NULL;
 #else
+#if !(MPU_DATA_UPDATE_HOOK_ENABLE)
 static uint8_t buff_head = 0, buff_tail = 0;
 static IMU_RAW mpu_buffer[MPU_DATA_DEPTH] = {0};
+#endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
 
 static uint8_t mpu9250_configured = 0;
@@ -176,7 +178,11 @@ static void IMU_INT_Callback(void)
 #if FREERTOS_ENABLED
     xQueueSendFromISR(mpu_queue, &mpu_raw_data, &xHigherPriorityTaskWoken);
 #else
+#if MPU_DATA_UPDATE_HOOK_ENABLE
+    mpu_update_hook(&mpu_raw_data);
+#else
     mpu_push_new(&mpu_raw_data);
+#endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
   }
 }
@@ -190,6 +196,12 @@ static void mpu_queue_create(void)
 QueueHandle_t* mpu_queue_get(void)
 {
   return &mpu_queue;
+}
+#else
+#if MPU_DATA_UPDATE_HOOK_ENABLE
+__attribute__((weak)) void mpu_update_hook(IMU_RAW *pRaw)
+{
+
 }
 #else
 uint8_t mpu_push_new(IMU_RAW *pRaw)
@@ -210,6 +222,7 @@ uint8_t mpu_pull_new(IMU_RAW *pRaw)
 	buff_tail = (buff_tail + 1) & MPU_BUFF_MASK;
 	return 1;
 }
+#endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
 
 /*

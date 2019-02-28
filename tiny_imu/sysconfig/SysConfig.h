@@ -14,7 +14,7 @@
 
 #include "TimerCounter.h"
 
-#define FREERTOS_ENABLED               (1)
+#define FREERTOS_ENABLED               (0)
 #if FREERTOS_ENABLED
 #include "cmsis_os.h"
 #endif /* FREERTOS_ENABLED */
@@ -23,6 +23,6 @@
 #define UNUSED_PARAMETER(X)                      UNUSED_VARIABLE(X)
 #define UNUSED_RETURN_VALUE(X)                   UNUSED_VARIABLE(X)
 
-void StartThread(void const * argument);
+void StartThread(void const * arg);
 
 #endif /* SYSCONFIG_H_ */

@@ -1,5 +1,6 @@
 #include "com_task.h"
 
+#if FREERTOS_ENABLED
 //__ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __ALIGN_END;
 
 static COM_MSG_DEF msg;
@@ -82,3 +83,5 @@ QueueHandle_t* get_com_msg_send_queue(void)
 //{
 ////  kyLink_DecodeProcess(Data);
 //}
+
+#endif /* FREERTOS_ENABLED */

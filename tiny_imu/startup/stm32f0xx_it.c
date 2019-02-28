@@ -11,7 +11,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_it.h"
+
+#include "SysConfig.h"
+#if FREERTOS_ENABLED
 //#include "cmsis_os.h"
+#endif /* FREERTOS_ENABLED */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -46,15 +50,35 @@ void HardFault_Handler(void)
   }
 }
 
+#if !FREERTOS_ENABLED
+
+/**
+  * @brief  This function handles SVCall exception.
+  * @param  None
+  * @retval None
+  */
+void SVC_Handler(void)
+{
+}
+
+/**
+  * @brief  This function handles PendSVC exception.
+  * @param  None
+  * @retval None
+  */
+void PendSV_Handler(void)
+{
+}
+
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
   * @retval None
   */
-//void SysTick_Handler(void)
-//{
-//	osSystickHandler();
-//}
+void SysTick_Handler(void)
+{
+}
+#endif /* FREERTOS_ENABLED */
 
 /******************************************************************************/
 /*                 STM32F0xx Peripherals Interrupt Handlers                   */
