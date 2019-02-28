@@ -1,0 +1,3 @@
+[submodule "uart2can"]
+	path = uart2can
+	url = https://github.com/TOBORYID/uart2can.git
