@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-./driver/device/mpu9250.c
+./driver/device/mpu9250.c \
+./driver/device/eeprom.c
 
 OBJS += \
-$(BuildPath)/driver/device/mpu9250.o
+$(BuildPath)/driver/device/mpu9250.o \
+$(BuildPath)/driver/device/eeprom.o
 
 C_DEPS += \
-$(BuildPath)/driver/device/mpu9250.d
+$(BuildPath)/driver/device/mpu9250.d \
+$(BuildPath)/driver/device/eeprom.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 

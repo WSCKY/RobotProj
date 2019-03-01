@@ -12,6 +12,8 @@
 
 #include "uart2.h"
 #include "kyLink.h"
+
+#include "eeprom.h"
 #include "mpu9250.h"
 
 #endif /* APPS_MAIN_TASK_H_ */

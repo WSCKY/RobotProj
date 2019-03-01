@@ -8,6 +8,7 @@
 #ifndef DRIVER_DEVICE_IFCONFIG_H_
 #define DRIVER_DEVICE_IFCONFIG_H_
 
+#include "i2c1.h"
 #include "spi1.h"
 #include "intio.h"
 #include "uart2.h"
