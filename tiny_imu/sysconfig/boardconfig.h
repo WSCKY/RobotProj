@@ -18,7 +18,7 @@
 #define SYS_BOOT_ORIGIN                     0x08000000
 #define SYS_BOOT_LENGTH                     8K
 #define SYS_TEXT_ORIGIN                     0x08000000
-#define SYS_TEXT_LENGTH                     24K
+#define SYS_TEXT_LENGTH                     32K
 #define SYS_SRAM_ORIGIN                     0x20000000
 #define SYS_SRAM_LENGTH                     6K
 
