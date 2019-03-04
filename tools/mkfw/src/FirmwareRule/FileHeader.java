@@ -30,7 +30,7 @@ public class FileHeader {
 			System.arraycopy(h, 0, HeaderBuf, 0, HeaderSize);
 		}
 	}
-	public FileHeader(int crc32, char version, byte type) {
+	public FileHeader(int crc32, char version, byte type, String method) {
 		HeaderBuf = new byte[HeaderSize];
 
 		System.arraycopy(FileId.getBytes(), 0, HeaderBuf, 0, 5);
@@ -40,7 +40,7 @@ public class FileHeader {
 		byte[] d = new byte[]{(byte)(version >> 8), (byte)(version >> 0)};
 		System.arraycopy(d, 0, HeaderBuf, 28, 2);
 		HeaderBuf[30] = type;
-		HeaderBuf[31] = (byte)1; /* AES128 ECB MODE */
+		HeaderBuf[31] = FileEncMode.getMode(method); /* AES128 ECB MODE */
 		/* [32] - [39] reserved */
 	}
 	public byte[] toBytes() {

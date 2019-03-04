@@ -32,7 +32,7 @@ public class FileEncrypter {
 
 	private FileEncrypter() {}
 
-	public static void EncryptFile(File srcFile, File dstFile, boolean append) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+	public static void EncryptFile(File srcFile, File dstFile, String method, boolean append) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 		if(srcFile.exists() && srcFile.isFile()) {
 			if(!dstFile.getParentFile().exists()) {
 				dstFile.getParentFile().mkdirs();
@@ -41,33 +41,30 @@ public class FileEncrypter {
 			InputStream in = new FileInputStream(srcFile);
 			OutputStream out = new FileOutputStream(dstFile, append);
 
-			byte[] AES_Key = Key.getBytes("utf-8");
-			byte[] AES_IV = IV.getBytes("utf-8");
-			SecretKeySpec skeySpec = new SecretKeySpec(AES_Key, "AES");
-			IvParameterSpec sIvSpec = new IvParameterSpec(AES_IV);
-			Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-			cipher.init(Cipher.ENCRYPT_MODE, skeySpec, sIvSpec);
-/*
-//(1)
-			CipherInputStream cin = new CipherInputStream(in, cipher);
-			byte[] cache = new byte[1024];
-			int nRead = 0;
-			while((nRead = cin.read(cache)) != -1) {
-				out.write(cache, 0, nRead);
-				out.flush();
-			}
-			out.close();
-            cin.close();
-            in.close();
-*/
-//(2)
-			byte[] r_cache = new byte[CACHE_SIZE];
-			byte[] w_cache = new byte[CACHE_SIZE];
-			int nRead = 0;
-			while((nRead = in.read(r_cache)) != -1) {
-				w_cache = cipher.doFinal(r_cache);
-				out.write(w_cache, 0, nRead);
-				out.flush();
+			if(method.equalsIgnoreCase(FileEncMode.ENC_MODE_AES_ECB)) {
+				byte[] AES_Key = Key.getBytes("utf-8");
+				byte[] AES_IV = IV.getBytes("utf-8");
+				SecretKeySpec skeySpec = new SecretKeySpec(AES_Key, "AES");
+				IvParameterSpec sIvSpec = new IvParameterSpec(AES_IV);
+				Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
+				cipher.init(Cipher.ENCRYPT_MODE, skeySpec, sIvSpec);
+	
+				byte[] r_cache = new byte[CACHE_SIZE];
+				byte[] w_cache = new byte[CACHE_SIZE];
+				int nRead = 0;
+				while((nRead = in.read(r_cache)) != -1) {
+					w_cache = cipher.doFinal(r_cache);
+					out.write(w_cache, 0, nRead);
+					out.flush();
+				}
+			} else {
+				byte[] r_cache = new byte[CACHE_SIZE];
+				byte[] w_cache = new byte[CACHE_SIZE];
+				int nRead = 0;
+				while((nRead = in.read(r_cache)) != -1) {
+					out.write(w_cache, 0, nRead);
+					out.flush();
+				}
 			}
 			out.close();
             in.close();

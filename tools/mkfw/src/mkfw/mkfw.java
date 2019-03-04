@@ -18,7 +18,7 @@ import FirmwareRule.FileEncrypter;
 import FirmwareRule.FileHeader;
 
 public class mkfw {
-	private void make(String fn) {
+	private void make(String fn, String method) {
 		File srcFile = new File(fn);
 		if(srcFile.exists()) {
 			String suffix = srcFile.getName().substring(srcFile.getName().lastIndexOf("."));
@@ -30,7 +30,7 @@ public class mkfw {
 				try {
 					dstFile.createNewFile();
 					OutputStream fout = new FileOutputStream(dstFile, false); // write to beginning of file.
-					FileHeader header = new FileHeader(2333, (char)1, (byte)1);
+					FileHeader header = new FileHeader(2333, (char)1, (byte)1, method);
 					fout.write(header.toBytes());
 					fout.flush();
 					fout.close();
@@ -39,7 +39,7 @@ public class mkfw {
 					e1.printStackTrace();
 				}
 				try {
-					FileEncrypter.EncryptFile(srcFile, dstFile, true); // write to the end of file.
+					FileEncrypter.EncryptFile(srcFile, dstFile, method, true); // write to the end of file.
 					System.out.print(" FW Size: " + dstFile.length() + " Bytes. @");
 					System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
@@ -58,10 +58,16 @@ public class mkfw {
 		}
 	}
 	public static void main(String[] args) {
-		if(args.length < 1) {
-			System.out.println("no invalid input parameter");
+		if(args.length < 2) {
+			System.out.println("invalid parameter");
 			System.exit(0);
 		}
-		(new mkfw()).make(args[0]);
+		if(args[1].equalsIgnoreCase("PLAIN") || args[1].equalsIgnoreCase("AES/ECB")) {
+			System.out.println("input: " + args[0] + ", " + args[1].toUpperCase() + " MODE.");
+		} else {
+			System.out.println("invalid parameter");
+			System.exit(0);
+		}
+		(new mkfw()).make(args[0], args[1]);
 	}
 }
