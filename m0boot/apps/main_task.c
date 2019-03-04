@@ -13,13 +13,15 @@ CommPackageDef *pRx;
 CommPackageDef TxPacket;
 uint8_t upgrade_flag = 0;
 uint32_t NbrOfPage = 32;
-uint32_t EraseCounter = 0x00, Address = 0x00;
 
 uint32_t PackageNbr = 0, PackageRecNbr = 0;
 
+typedef  void (*pFunction)(void);
+pFunction Jump_To_Application;
+
 #define FLASH_PAGE_SIZE         ((uint32_t)0x00000400)   /* FLASH Page Size */
-#define FLASH_USER_START_ADDR   ((uint32_t)0x08002000)   /* Start @ of user Flash area */
-#define FLASH_USER_END_ADDR     ((uint32_t)0x08008000)   /* End @ of user Flash area */
+#define APPLICATION_ADDRESS   ((uint32_t)0x08002000)   /* Start @ of user Flash area */
+//#define FLASH_USER_END_ADDR     ((uint32_t)0x08008000)   /* End @ of user Flash area */
 
 #define USER_FLASH_PROGRAM_CACHE   (2000)
 #define PACKAGE_NUM_PER_CACHE         (USER_FLASH_PROGRAM_CACHE / FILE_DATA_CACHE)
@@ -27,6 +29,11 @@ uint32_t PackageNbr = 0, PackageRecNbr = 0;
 uint8_t PacketDataInCacheIndex = 0;
 uint8_t FlashProgramIndex = 0;
 uint8_t FlashProgramCache[USER_FLASH_PROGRAM_CACHE] = {0};
+
+uint32_t PacketSendStartTime = 0;
+uint32_t PacketSendTimeOut = 0;
+
+uint8_t UpgradeComplete = 0;
 
 FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length);
 
@@ -68,13 +75,19 @@ void StartThread(void const * arg)
 		/* Clear pending flags (if any) */
 		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 		/* Define the number of page to be erased */
-		NbrOfPage = (FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
-		for(EraseCounter = 0; EraseCounter < NbrOfPage; EraseCounter ++) {
-			FLASH_ErasePage(FLASH_USER_START_ADDR + (FLASH_PAGE_SIZE * EraseCounter));
+//		NbrOfPage = (FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
+		for(uint32_t EraseCounter = 0; EraseCounter < NbrOfPage; EraseCounter ++) {
+			FLASH_ErasePage(APPLICATION_ADDRESS + (FLASH_PAGE_SIZE * EraseCounter));
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = NbrOfPage;
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = EraseCounter + 1;
 			SendTxPacket(&TxPacket);
 		}
+
+		PacketSendStartTime = _Get_Millis();
+		PacketSendTimeOut = 50;
+		PackageRecNbr = 0;
+		PacketDataInCacheIndex = 0;
+		FlashProgramIndex = 0;
 
 		for(;;) {
 			if(GotNewData()) {
@@ -83,43 +96,74 @@ void StartThread(void const * arg)
 					memcpy(FlashProgramCache, pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
 					if(PacketDataInCacheIndex == (PACKAGE_NUM_PER_CACHE - 1) || PackageRecNbr == (PackageNbr - 1)) {
 						if(PackageRecNbr == (PackageNbr - 1)) {
-							FLASH_If_ProgramWords(FLASH_USER_START_ADDR + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
+							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
 									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
+							UpgradeComplete = 1;
 						} else {
-							FLASH_If_ProgramWords(FLASH_USER_START_ADDR + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
+							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
 									USER_FLASH_PROGRAM_CACHE);
 						}
 					}
+					PackageRecNbr ++;
+					TxPacket.Packet.PacketData.DevRespInfo.Dev_State = Upgrading;
+					TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = PackageRecNbr;
+					TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = PackageRecNbr >> 8;
+					TxPacket.Packet.PacketData.DevRespInfo.reserve[2] = PackageRecNbr >> 16;
+					TxPacket.Packet.PacketData.DevRespInfo.reserve[3] = PackageRecNbr >> 24;
+					SendTxPacket(&TxPacket);
+					PacketSendStartTime = _Get_Millis();
+					PacketSendTimeOut = 20;
+				}
+			}
+			if(_Get_Millis() - PacketSendStartTime >= PacketSendTimeOut) {
+				TxPacket.Packet.PacketData.DevRespInfo.Dev_State = Upgrading;
+				TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = PackageRecNbr;
+				TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = PackageRecNbr >> 8;
+				TxPacket.Packet.PacketData.DevRespInfo.reserve[2] = PackageRecNbr >> 16;
+				TxPacket.Packet.PacketData.DevRespInfo.reserve[3] = PackageRecNbr >> 24;
+				SendTxPacket(&TxPacket);
+				PacketSendStartTime = _Get_Millis();
+				if(UpgradeComplete == 1) {
+					break;
 				}
 			}
 		}
-	} else {
+		FLASH_Lock();
+	}
 
+	/* Check Vector Table: Test if user code is programmed starting from address
+		"APPLICATION_ADDRESS" */
+	if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
+		/* Jump to user application */
+		uint32_t JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
+		Jump_To_Application = (pFunction) JumpAddress;
+		/* Initialize user application's Stack Pointer */
+		__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
+		Jump_To_Application();
 	}
 
 //	sEE_Init();
 
-	for(;;) {
-		if(upgrade_flag) {
-			SendTxPacket(&TxPacket);
+//	for(;;) {
+//		if(upgrade_flag) {
+//			SendTxPacket(&TxPacket);
 //			if(USBD_isEnabled()) {
 //				USB_CDC_SendBufferFast((uint8_t *)"yyyyy\n", 6);
 //			}
-		} else {
+//		} else {
 //			if(USBD_isEnabled()) {
 //				USB_CDC_SendBufferFast((uint8_t *)"nnnnn\n", 6);
 //			}
-		}
+//		}
 
-		_delay_ms(200);
-	}
+//		_delay_ms(200);
+//	}
 }
 
 FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length)
 {
-	uint32_t programcounter = 0;
 	FLASH_Status status = FLASH_COMPLETE;
-	for(programcounter = 0; programcounter < Length; programcounter += 4) {
+	for(uint32_t programcounter = 0; programcounter < Length; programcounter += 4) {
 		if((status = FLASH_ProgramWord(Address + programcounter, *(__IO uint32_t *)(pData + programcounter))) != FLASH_COMPLETE)
 			break;
 	}
