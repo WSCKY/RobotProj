@@ -35,7 +35,7 @@ typedef struct {
 	unsigned int crc32;
 	unsigned short int version;
 	unsigned char type;
-	unsigned char method;
+	char *method;
 	long int size;
 } FW_INFO;
 

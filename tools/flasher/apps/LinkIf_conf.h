@@ -23,6 +23,6 @@
 
 #define COM_USER_TYPE_DATA                     FWInfoDef FileInfo; \
                                                UpgradeDataDef PacketInfo; \
-                                               DevResponseDef FCActInfo;
+                                               DevResponseDef DevRespInfo;
 
 #endif /* APPS_LINKIF_CONF_H_ */

@@ -17,8 +17,16 @@
 
 typedef enum {
 	FW_TYPE_NONE = 0,
-	FW_TYPE_APP = 1,
+	FW_TYPE_DRV_APP = 1,
+	FW_TYPE_IMU_APP = 2,
+	FW_TYPE_NAV_APP = 3,
+	FW_TYPE_USC_APP = 4,
 } __packed FW_TYPE;
+
+typedef enum {
+	ENC_TYPE_PLAIN = 0,
+	ENC_TYPE_AES_ECB = 1,
+} __packed FW_ENC_TYPE;
 
 typedef enum {
 	IsReady = 0,
@@ -30,10 +38,10 @@ typedef enum {
 
 typedef struct {
 	FW_TYPE FW_Type;
+	FW_ENC_TYPE Enc_Type;
 	uint32_t PacketNum;
 	uint32_t FileSize;
 	uint16_t FW_Version;
-	uint8_t DroneType;
 	uint32_t FileCRC;
 } __packed FWInfoDef;
 

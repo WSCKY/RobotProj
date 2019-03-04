@@ -36,9 +36,14 @@ int fw_check(void)
 			return -1;
 		}
 	}
-	fw_info.size = stbuf.st_size;
+	fw_info.size = stbuf.st_size - 40;
 	fw_info.crc32 = fw_header.header.crc32;
-	fw_info.method = fw_header.header.method;
+//	fw_info.method = fw_header.header.method;
+	if(fw_header.header.method == 1) {
+		fw_info.method = "AES/ECB";
+	} else {
+		fw_info.method = "PLAIN";
+	}
 	fw_info.type = fw_header.header.type;
 	fw_info.version = fw_header.header.version;
 	for(int i = 0; i < 19; i ++) {
