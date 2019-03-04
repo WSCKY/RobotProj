@@ -62,6 +62,7 @@ MKDIR   := $(Q)mkdir
 ECHO    := $(Q)@echo
 PRINTF  := $(Q)@printf
 MAKE    := $(Q)make
+JAVA    := $(Q)java
 CAT     := $(Q)cat
 
 # Export Commands
@@ -143,6 +144,7 @@ monitor:
 post-build:
 	-@echo ' Generating binary and Printing size information:'
 	$(OBJCOPY) -O binary $(OutPath)/$(ProjName).elf $(OutPath)/$(ProjName).bin
+	$(JAVA) -cp ../tools/mkfw/bin mkfw.mkfw $(OutPath)/$(ProjName).bin PLAIN
 	$(SIZE) $(OutPath)/$(ProjName).elf
 	-@echo ' Completed.'
 
