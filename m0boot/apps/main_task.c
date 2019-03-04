@@ -1,0 +1,134 @@
+/*
+ * main_task.c
+ *
+ *  Created on: Feb 28, 2019
+ *      Author: kychu
+ */
+
+#include "main_task.h"
+#include "string.h"
+
+//USB_CORE_HANDLE  USB_Device_dev;
+CommPackageDef *pRx;
+CommPackageDef TxPacket;
+uint8_t upgrade_flag = 0;
+uint32_t NbrOfPage = 32;
+uint32_t EraseCounter = 0x00, Address = 0x00;
+
+uint32_t PackageNbr = 0, PackageRecNbr = 0;
+
+#define FLASH_PAGE_SIZE         ((uint32_t)0x00000400)   /* FLASH Page Size */
+#define FLASH_USER_START_ADDR   ((uint32_t)0x08002000)   /* Start @ of user Flash area */
+#define FLASH_USER_END_ADDR     ((uint32_t)0x08008000)   /* End @ of user Flash area */
+
+#define USER_FLASH_PROGRAM_CACHE   (2000)
+#define PACKAGE_NUM_PER_CACHE         (USER_FLASH_PROGRAM_CACHE / FILE_DATA_CACHE)
+
+uint8_t PacketDataInCacheIndex = 0;
+uint8_t FlashProgramIndex = 0;
+uint8_t FlashProgramCache[USER_FLASH_PROGRAM_CACHE] = {0};
+
+FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length);
+
+/**
+  * @brief  Start Thread
+  * @param  argument not used
+  * @retval None
+  */
+void StartThread(void const * arg)
+{
+	uint8_t counter = 100;
+	pRx = GetRxPacket();
+	InitCommPackage(&TxPacket);
+	uart2_init(kyLink_DecodeProcess);
+
+	/* The Application layer has only to call USBD_Init to
+	initialize the USB low level driver, the USB device library, the USB clock
+	,pins and interrupt service routine (BSP) to start the Library*/
+//	USBD_Init(&USB_Device_dev, &USR_desc, &USBD_CDC_cb, &USR_cb);
+
+	while(counter --) {
+		_delay_ms(10);
+		if(GotNewData()) {//pRx->Packet.dev_id == HARD_DEV_ID && pRx->Packet.PacketData.FileInfo.FW_Type == FW_TYPE_IMU_APP &&
+			if(pRx->Packet.msg_id == TYPE_UPGRADE_REQUEST && pRx->Packet.length == 16 && \
+			   pRx->Packet.PacketData.FileInfo.Enc_Type == ENC_TYPE_PLAIN) {
+				PackageNbr = pRx->Packet.PacketData.FileInfo.PacketNum;
+				upgrade_flag = 1;
+				break;
+			}
+		}
+	}
+	if(upgrade_flag) {
+		TxPacket.Packet.msg_id = TYPE_UPGRADE_DEV_ACK;
+		TxPacket.Packet.length = sizeof(DevResponseDef);
+		TxPacket.Packet.PacketData.DevRespInfo.Dev_State = InErasing;
+
+		/* Unlock the Flash to enable the flash control register access *************/
+		FLASH_Unlock();
+		/* Clear pending flags (if any) */
+		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+		/* Define the number of page to be erased */
+		NbrOfPage = (FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
+		for(EraseCounter = 0; EraseCounter < NbrOfPage; EraseCounter ++) {
+			FLASH_ErasePage(FLASH_USER_START_ADDR + (FLASH_PAGE_SIZE * EraseCounter));
+			TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = NbrOfPage;
+			TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = EraseCounter + 1;
+			SendTxPacket(&TxPacket);
+		}
+
+		for(;;) {
+			if(GotNewData()) {
+				if(pRx->Packet.msg_id == TYPE_UPGRADE_DATA && pRx->Packet.PacketData.PacketInfo.PacketID == PackageRecNbr + 1) {
+					PacketDataInCacheIndex = PackageRecNbr % PACKAGE_NUM_PER_CACHE;
+					memcpy(FlashProgramCache, pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
+					if(PacketDataInCacheIndex == (PACKAGE_NUM_PER_CACHE - 1) || PackageRecNbr == (PackageNbr - 1)) {
+						if(PackageRecNbr == (PackageNbr - 1)) {
+							FLASH_If_ProgramWords(FLASH_USER_START_ADDR + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
+									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
+						} else {
+							FLASH_If_ProgramWords(FLASH_USER_START_ADDR + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
+									USER_FLASH_PROGRAM_CACHE);
+						}
+					}
+				}
+			}
+		}
+	} else {
+
+	}
+
+//	sEE_Init();
+
+	for(;;) {
+		if(upgrade_flag) {
+			SendTxPacket(&TxPacket);
+//			if(USBD_isEnabled()) {
+//				USB_CDC_SendBufferFast((uint8_t *)"yyyyy\n", 6);
+//			}
+		} else {
+//			if(USBD_isEnabled()) {
+//				USB_CDC_SendBufferFast((uint8_t *)"nnnnn\n", 6);
+//			}
+		}
+
+		_delay_ms(200);
+	}
+}
+
+FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length)
+{
+	uint32_t programcounter = 0;
+	FLASH_Status status = FLASH_COMPLETE;
+	for(programcounter = 0; programcounter < Length; programcounter += 4) {
+		if((status = FLASH_ProgramWord(Address + programcounter, *(__IO uint32_t *)(pData + programcounter))) != FLASH_COMPLETE)
+			break;
+	}
+	return status;
+}
+
+//uint32_t sEE_TIMEOUT_UserCallback(void)
+//{
+//	uart2_TxBytesDMA((uint8_t *)"IIC ERR.\n", 9);
+//	return 0;
+//}
+
