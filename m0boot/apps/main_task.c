@@ -9,6 +9,7 @@
 #include "string.h"
 
 //USB_CORE_HANDLE  USB_Device_dev;
+
 CommPackageDef *pRx;
 CommPackageDef TxPacket;
 uint8_t upgrade_flag = 0;
@@ -57,7 +58,7 @@ void StartThread(void const * arg)
 	while(counter --) {
 		_delay_ms(10);
 		if(GotNewData()) {//pRx->Packet.dev_id == HARD_DEV_ID && pRx->Packet.PacketData.FileInfo.FW_Type == FW_TYPE_IMU_APP &&
-			if(pRx->Packet.msg_id == TYPE_UPGRADE_REQUEST && pRx->Packet.length == 16 && \
+			if(pRx->Packet.msg_id == TYPE_UPGRADE_REQUEST && pRx->Packet.length == 16 &&
 			   pRx->Packet.PacketData.FileInfo.Enc_Type == ENC_TYPE_PLAIN) {
 				PackageNbr = pRx->Packet.PacketData.FileInfo.PacketNum;
 				upgrade_flag = 1;
@@ -71,13 +72,14 @@ void StartThread(void const * arg)
 		TxPacket.Packet.PacketData.DevRespInfo.Dev_State = InErasing;
 
 		/* Unlock the Flash to enable the flash control register access *************/
-		FLASH_Unlock();
+//		FLASH_Unlock();
 		/* Clear pending flags (if any) */
-		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+//		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 		/* Define the number of page to be erased */
 //		NbrOfPage = (FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
 		for(uint32_t EraseCounter = 0; EraseCounter < NbrOfPage; EraseCounter ++) {
-			FLASH_ErasePage(APPLICATION_ADDRESS + (FLASH_PAGE_SIZE * EraseCounter));
+//			FLASH_ErasePage(APPLICATION_ADDRESS + (FLASH_PAGE_SIZE * EraseCounter));
+			_delay_ms(100);
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = NbrOfPage;
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = EraseCounter + 1;
 			SendTxPacket(&TxPacket);
@@ -93,15 +95,16 @@ void StartThread(void const * arg)
 			if(GotNewData()) {
 				if(pRx->Packet.msg_id == TYPE_UPGRADE_DATA && pRx->Packet.PacketData.PacketInfo.PacketID == PackageRecNbr + 1) {
 					PacketDataInCacheIndex = PackageRecNbr % PACKAGE_NUM_PER_CACHE;
-					memcpy(FlashProgramCache, pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
+					_delay_ms(10);
+//					memcpy(FlashProgramCache, pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
 					if(PacketDataInCacheIndex == (PACKAGE_NUM_PER_CACHE - 1) || PackageRecNbr == (PackageNbr - 1)) {
 						if(PackageRecNbr == (PackageNbr - 1)) {
-							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
-									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
+//							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
+//									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
 							UpgradeComplete = 1;
 						} else {
-							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache, \
-									USER_FLASH_PROGRAM_CACHE);
+//							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
+//									USER_FLASH_PROGRAM_CACHE);
 						}
 					}
 					PackageRecNbr ++;
@@ -128,18 +131,21 @@ void StartThread(void const * arg)
 				}
 			}
 		}
-		FLASH_Lock();
+//		FLASH_Lock();
 	}
 
 	/* Check Vector Table: Test if user code is programmed starting from address
 		"APPLICATION_ADDRESS" */
-	if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
-		/* Jump to user application */
-		uint32_t JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
-		Jump_To_Application = (pFunction) JumpAddress;
-		/* Initialize user application's Stack Pointer */
-		__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
-		Jump_To_Application();
+//	if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000) {
+//		/* Jump to user application */
+//		uint32_t JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
+//		Jump_To_Application = (pFunction) JumpAddress;
+//		/* Initialize user application's Stack Pointer */
+//		__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
+//		Jump_To_Application();
+//	}
+	for(;;) {
+
 	}
 
 //	sEE_Init();
@@ -148,16 +154,16 @@ void StartThread(void const * arg)
 //		if(upgrade_flag) {
 //			SendTxPacket(&TxPacket);
 //			if(USBD_isEnabled()) {
-//				USB_CDC_SendBufferFast((uint8_t *)"yyyyy\n", 6);
+//			uart2_TxBytesDMA((uint8_t *)"yyyyy\n", 6);
 //			}
 //		} else {
 //			if(USBD_isEnabled()) {
 //				USB_CDC_SendBufferFast((uint8_t *)"nnnnn\n", 6);
 //			}
+//			uart2_TxBytesDMA((uint8_t *)"nnnnn\n", 6);
 //		}
 
 //		_delay_ms(200);
-//	}
 }
 
 FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length)
