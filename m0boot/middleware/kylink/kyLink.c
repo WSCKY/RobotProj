@@ -1,31 +1,18 @@
+/**
+ * @file    kyLink.c
+ * @author  kyChu
+ * @date    2017/08/20
+ * @version V0.8.0
+ * @brief   kylink protocol in ANSI C
+ */
 #include "kyLink.h"
 
-#if FREERTOS_ENABLED
-QueueHandle_t lnk_recv_q = NULL;
-static void lnk_queue_create(void);
-#else
 static uint8_t GotDataFlag = 0;
 static CommPackageDef rxPacket = {0};
-#endif /* FREERTOS_ENABLED */
 
 /* function prototypes */
 static uint16_t do_crc_table(uint8_t *ptr, uint32_t len);
 
-void kyLink_Init(void)
-{
-#if FREERTOS_ENABLED
-  lnk_queue_create();
-#else
-  GotDataFlag = 0;
-#endif /* FREERTOS_ENABLED */
-}
-
-#if FREERTOS_ENABLED
-static void lnk_queue_create(void)
-{
-  lnk_recv_q = xQueueCreate(MSG_QUEUE_DEPTH, sizeof(CommPackageDef));
-}
-#else
 uint8_t GotNewData(void)
 {
   if(GotDataFlag == 1) {
@@ -39,7 +26,6 @@ CommPackageDef* GetRxPacket(void)
 {
   return &rxPacket;
 }
-#endif /* FREERTOS_ENABLED */
 
 void InitCommPackage(CommPackageDef* pPacket)
 {
@@ -48,7 +34,7 @@ void InitCommPackage(CommPackageDef* pPacket)
 	pPacket->Packet.dev_id = HARD_DEV_ID;
 	pPacket->Packet.msg_id = TYPE_LINK_HEARTBEAT;
 	pPacket->Packet.length = 1;
-	pPacket->Packet.PacketData.Heartbeat._Cnt = 0;
+	pPacket->Packet.PacketData.Heartbeat = 0;
 	pPacket->Packet.crc16 = 0;
 }
 
@@ -70,7 +56,8 @@ static uint16_t do_crc_table(uint8_t *ptr, uint32_t len)
 void SendTxPacket(CommPackageDef* pPacket)
 {
   pPacket->Packet.crc16 = do_crc_table(&(pPacket->RawData[2]), pPacket->Packet.length + 4);
-  *((uint16_t *)(&(pPacket->Packet.PacketData.pData[pPacket->Packet.length]))) = (pPacket->Packet.crc16);
+  /* NOTE: DO NOT MAKE OPTIMIZATION */
+  *(uint16_t *)&(pPacket->Packet.PacketData.pData[pPacket->Packet.length]) = pPacket->Packet.crc16;
   if(COM_IF_TX_CHECK())
     COM_IF_TX_BYTES(pPacket->RawData, pPacket->Packet.length + 8);
 }
@@ -79,14 +66,12 @@ void SendTxPacket(CommPackageDef* pPacket)
 static uint8_t _rx_length = 0;
 static CommPackageDef _rx_packet = {0};
 static DECODE_STATE _decode_state = DECODE_STATE_UNSYNCED;
+
 /*
   decode process.
 */
 void kyLink_DecodeProcess(uint8_t data)
 {
-#if FREERTOS_ENABLED
-  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-#endif /* FREERTOS_ENABLED */
   switch(_decode_state) {
     case DECODE_STATE_UNSYNCED:
       if(data == kySTX1) {
@@ -135,17 +120,17 @@ void kyLink_DecodeProcess(uint8_t data)
     case DECODE_STATE_GOT_CRC_L:
       _rx_packet.Packet.crc16 = (data << 8) | _rx_packet.Packet.crc16; /* got the crc16. */
       if(do_crc_table(&(_rx_packet.RawData[2]), _rx_length + 4) == _rx_packet.Packet.crc16) {
-#if FREERTOS_ENABLED
-        xQueueSendFromISR(lnk_recv_q, &_rx_packet, &xHigherPriorityTaskWoken);
-#else
         rxPacket = _rx_packet;
         GotDataFlag = 1;
-#endif /* FREERTOS_ENABLED */
       } else {}
-      _decode_state = DECODE_STATE_UNSYNCED;
+        _decode_state = DECODE_STATE_UNSYNCED;
     break;
     default:
       _decode_state = DECODE_STATE_UNSYNCED;
     break;
   }
 }
+
+/**
+ * @ End of file.
+ */

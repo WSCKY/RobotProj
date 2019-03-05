@@ -13,7 +13,7 @@
 CommPackageDef *pRx;
 CommPackageDef TxPacket;
 uint8_t upgrade_flag = 0;
-uint32_t NbrOfPage = 32;
+uint32_t NbrOfPage = 24;
 
 uint32_t PackageNbr = 0, PackageRecNbr = 0;
 
@@ -72,14 +72,14 @@ void StartThread(void const * arg)
 		TxPacket.Packet.PacketData.DevRespInfo.Dev_State = InErasing;
 
 		/* Unlock the Flash to enable the flash control register access *************/
-//		FLASH_Unlock();
+		FLASH_Unlock();
 		/* Clear pending flags (if any) */
-//		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 		/* Define the number of page to be erased */
 //		NbrOfPage = (FLASH_USER_END_ADDR - FLASH_USER_START_ADDR) / FLASH_PAGE_SIZE;
 		for(uint32_t EraseCounter = 0; EraseCounter < NbrOfPage; EraseCounter ++) {
-//			FLASH_ErasePage(APPLICATION_ADDRESS + (FLASH_PAGE_SIZE * EraseCounter));
-			_delay_ms(100);
+			FLASH_ErasePage(APPLICATION_ADDRESS + (FLASH_PAGE_SIZE * EraseCounter));
+//			_delay_ms(50);
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = NbrOfPage;
 			TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = EraseCounter + 1;
 			SendTxPacket(&TxPacket);
@@ -93,21 +93,22 @@ void StartThread(void const * arg)
 
 		for(;;) {
 			if(GotNewData()) {
-				if(pRx->Packet.msg_id == TYPE_UPGRADE_DATA && pRx->Packet.PacketData.PacketInfo.PacketID == PackageRecNbr + 1) {
+				if(pRx->Packet.msg_id == TYPE_UPGRADE_DATA && pRx->Packet.PacketData.PacketInfo.PacketID == PackageRecNbr) {
 					PacketDataInCacheIndex = PackageRecNbr % PACKAGE_NUM_PER_CACHE;
-					_delay_ms(10);
-//					memcpy(FlashProgramCache, pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
-					if(PacketDataInCacheIndex == (PACKAGE_NUM_PER_CACHE - 1) || PackageRecNbr == (PackageNbr - 1)) {
-						if(PackageRecNbr == (PackageNbr - 1)) {
-//							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
-//									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
+					PackageRecNbr ++;
+//					_delay_ms(10);
+					memcpy((uint8_t *)&FlashProgramCache[PacketDataInCacheIndex * FILE_DATA_CACHE], pRx->Packet.PacketData.PacketInfo.PacketData, pRx->Packet.PacketData.PacketInfo.PacketLen);
+					if(PacketDataInCacheIndex == (PACKAGE_NUM_PER_CACHE - 1) || PackageRecNbr == PackageNbr) {
+						if(PackageRecNbr == PackageNbr) {
+							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
+									PacketDataInCacheIndex * FILE_DATA_CACHE + pRx->Packet.PacketData.PacketInfo.PacketLen);
 							UpgradeComplete = 1;
 						} else {
-//							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
-//									USER_FLASH_PROGRAM_CACHE);
+							FLASH_If_ProgramWords(APPLICATION_ADDRESS + FlashProgramIndex * USER_FLASH_PROGRAM_CACHE, FlashProgramCache,
+									USER_FLASH_PROGRAM_CACHE);
+							FlashProgramIndex ++;
 						}
 					}
-					PackageRecNbr ++;
 					TxPacket.Packet.PacketData.DevRespInfo.Dev_State = Upgrading;
 					TxPacket.Packet.PacketData.DevRespInfo.reserve[0] = PackageRecNbr;
 					TxPacket.Packet.PacketData.DevRespInfo.reserve[1] = PackageRecNbr >> 8;
@@ -131,7 +132,7 @@ void StartThread(void const * arg)
 				}
 			}
 		}
-//		FLASH_Lock();
+		FLASH_Lock();
 	}
 
 	/* Check Vector Table: Test if user code is programmed starting from address
@@ -170,6 +171,7 @@ FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Le
 {
 	FLASH_Status status = FLASH_COMPLETE;
 	for(uint32_t programcounter = 0; programcounter < Length; programcounter += 4) {
+//		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 		if((status = FLASH_ProgramWord(Address + programcounter, *(__IO uint32_t *)(pData + programcounter))) != FLASH_COMPLETE)
 			break;
 	}
@@ -182,3 +184,12 @@ FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Le
 //	return 0;
 //}
 
+void HardFault_Handler(void)
+{
+  /* Go to infinite loop when Hard Fault exception occurs */
+  while (1)
+  {
+	  uart2_TxBytesDMA((uint8_t *)"FSH ERR.\n", 9);
+	  _delay_ms(500);
+  }
+}
