@@ -29,7 +29,7 @@ pFunction Jump_To_Application;
 
 uint8_t PacketDataInCacheIndex = 0;
 uint8_t FlashProgramIndex = 0;
-uint8_t FlashProgramCache[USER_FLASH_PROGRAM_CACHE] = {0};
+__attribute__ ((aligned(4))) uint8_t FlashProgramCache[USER_FLASH_PROGRAM_CACHE] = {0};
 
 uint32_t PacketSendStartTime = 0;
 uint32_t PacketSendTimeOut = 0;
@@ -183,13 +183,3 @@ FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Le
 //	uart2_TxBytesDMA((uint8_t *)"IIC ERR.\n", 9);
 //	return 0;
 //}
-
-void HardFault_Handler(void)
-{
-  /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-	  uart2_TxBytesDMA((uint8_t *)"FSH ERR.\n", 9);
-	  _delay_ms(500);
-  }
-}
