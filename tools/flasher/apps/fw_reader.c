@@ -54,6 +54,16 @@ int fw_check(void)
 	return 0;
 }
 
+int fw_start_read(void)
+{
+	return lseek(fw_fd, SEEK_SET, 40);
+}
+
+int fw_read(char *p, size_t l)
+{
+	return read(fw_fd, p, l);
+}
+
 FW_INFO fw_getInfo(void)
 {
 	return fw_info;

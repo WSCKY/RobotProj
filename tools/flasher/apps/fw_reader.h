@@ -42,6 +42,8 @@ typedef struct {
 #define FW_HEADER_DESC_STRING                  ".kyFW"
 
 int fw_open(const char *path);
+int fw_start_read(void);
+int fw_read(char *p, size_t l);
 int fw_check(void);
 void fw_close(void);
 FW_INFO fw_getInfo(void);

@@ -7,6 +7,10 @@
 
 #include "upgrade.h"
 
+#define COMBINE_4BYTES(a, b, c, d)     ((((uint32_t)(d) << 24) & 0xFF000000) | \
+		(((uint32_t)(c) << 16) & 0x00FF0000) | \
+		(((uint32_t)(b) << 8) & 0x0000FF00) | ((a) & 0x000000FF))
+
 typedef enum {
 	Upgrade_SendReq = 0,
 	Upgrade_SendDat = 1,
@@ -44,21 +48,26 @@ void upgrade_wait_exit(void)
 	pthread_join(tim_thread, NULL);
 }
 
-static int rec_time_out = 0;
-
 FW_INFO fw_head;
 static CommPackageDef txPacket = {0};
+
+static UpgradeStep _step = Upgrade_SendReq;
+static int FlashPages = 0, FlashErased = 0;
+static int ReqPackageID = -1, TxPackageID = -1;
+static int PackageNbr = 0;
+
+static int tx_stop = 0;
+static int tx_enable = 0;
+static int tx_delay = 200; /* default tx delay 200ms */
+static int tx_time_stamp = 0;
 static void upgrade_tx_task(void)
 {
-	long int time_a = 0;
 	fw_head = fw_getInfo();
 	InitCommPackage(&txPacket);
 	int major = (fw_head.version & 0x00F0) >> 4;
 	int minor = fw_head.version & 0x000F;
 	int fixnum = (fw_head.version >> 8) & 0x00FF;
 	printf("Size: %ldB, V%d.%d.%d, Type:%d, Text:%s @ %s\n", fw_head.size, major, minor, fixnum, fw_head.type, fw_head.method, fw_head.time);
-	while(start_flag == 0) {}
-	printf("Start bootloader ...\n");
 
 	txPacket.Packet.msg_id = TYPE_UPGRADE_REQUEST;
 	txPacket.Packet.length = sizeof(FWInfoDef);
@@ -67,37 +76,102 @@ static void upgrade_tx_task(void)
 	txPacket.Packet.PacketData.FileInfo.FW_Version = fw_head.version;
 	txPacket.Packet.PacketData.FileInfo.FileCRC = fw_head.crc32;
 	txPacket.Packet.PacketData.FileInfo.FileSize = fw_head.size;
-	txPacket.Packet.PacketData.FileInfo.PacketNum = (fw_head.size / FILE_DATA_CACHE) + (((fw_head.size % FILE_DATA_CACHE) > 0) ? 1 : 0);
+	PackageNbr = (fw_head.size / FILE_DATA_CACHE) + (((fw_head.size % FILE_DATA_CACHE) > 0) ? 1 : 0);
+	txPacket.Packet.PacketData.FileInfo.PacketNum = PackageNbr;
 
-	printf("EARSING "); fflush(stdout);
-	time_a = task_ticks;
+	while(start_flag == 0) {}
+	printf("Start bootloader ...\n");
+
+	tx_delay = 200; // delay 200ms
+	tx_time_stamp = task_ticks;
 	while(exit_flag == 0) {
-		while(task_ticks - time_a < 5000 && rec_time_out == 0) { // wait 5s
-			printf("."); fflush(stdout);
-			usleep(200000);
-			SendTxPacket(&txPacket);
+		if(task_ticks - tx_time_stamp > tx_delay) {
+			tx_enable = 1;
 		}
-		exit_flag = 1;
+
+		if(tx_stop == 0) {
+			if(tx_enable != 0) {
+				tx_enable = 0;
+				SendTxPacket(&txPacket);
+				tx_time_stamp = task_ticks;
+			}
+		} else {
+			tx_enable = 0;
+			tx_time_stamp = task_ticks;
+		}
+		usleep(100);
 	}
 }
 
 static CommPackageDef *pRx;
+static int rx_time_stamp = 0;
+
+static int last_wait = -1;
+
 static void upgrade_rx_task(void)
 {
-	long int trec = 0;
+	long int time_start = 0;
 	pRx = GetRxPacket();
-	while(start_flag == 0) {}
-	trec = task_ticks;
+	_step = Upgrade_SendReq;
+	rx_time_stamp = task_ticks;
 	while(exit_flag == 0) {
 		if(GotNewData()) {
-			trec = task_ticks;
-			printf("GOT DATA(0x%x:0x%x)\n", pRx->Packet.dev_id, pRx->Packet.msg_id);
+			rx_time_stamp = task_ticks;
+			if(_step == Upgrade_SendReq) {
+				if(pRx->Packet.msg_id == TYPE_UPGRADE_DEV_ACK && pRx->Packet.PacketData.DevRespInfo.Dev_State == InErasing) {
+					tx_stop = 1; // pause.
+					FlashPages = pRx->Packet.PacketData.DevRespInfo.reserve[0];
+					FlashErased = pRx->Packet.PacketData.DevRespInfo.reserve[1];
+					printf("WAIT EARSE ... (%02d/%02d)  \r", FlashErased, FlashPages); fflush(stdout);
+				}
+			}
+			if(pRx->Packet.msg_id == TYPE_UPGRADE_DEV_ACK && pRx->Packet.PacketData.DevRespInfo.Dev_State == Upgrading) {
+				if(_step != Upgrade_SendDat) {
+					_step = Upgrade_SendDat;
+					printf("WAIT EARSE ... (%02d/%02d)\n", FlashPages, FlashPages); fflush(stdout);
+					txPacket.Packet.msg_id = TYPE_UPGRADE_DATA;
+					txPacket.Packet.length = sizeof(UpgradeDataDef);
+					fw_start_read(); // set read pointer.
+					tx_delay = 10; // delay 10ms.
+					time_start = task_ticks;
+				}
+				// get request package id.
+				ReqPackageID = COMBINE_4BYTES(pRx->Packet.PacketData.DevRespInfo.reserve[0], \
+											  pRx->Packet.PacketData.DevRespInfo.reserve[1], \
+											  pRx->Packet.PacketData.DevRespInfo.reserve[2], \
+											  pRx->Packet.PacketData.DevRespInfo.reserve[3]);
+				if(ReqPackageID > TxPackageID) {
+					TxPackageID = ReqPackageID;
+					txPacket.Packet.PacketData.PacketInfo.PacketID = ReqPackageID;
+					if(ReqPackageID < PackageNbr) {
+						int len = fw_read((char *)(txPacket.Packet.PacketData.PacketInfo.TextData), FILE_DATA_CACHE);
+						if(len > 0) {
+							txPacket.Packet.PacketData.PacketInfo.PacketLen = len;
+							tx_stop = 0; // tx continuously
+							tx_enable = 1; // tx immediately
+							printf("PROGRAM ... (%d/%d)     \r", ReqPackageID + 1, PackageNbr); fflush(stdout);
+						} else {
+							printf("\n\e[0;31mFW READ ERROR!!!\e[0m\n");
+						}
+						if(ReqPackageID == PackageNbr - 1) { // the last one package, maybe lost.
+							last_wait = task_ticks;
+						}
+					} else if(ReqPackageID == PackageNbr) {
+						printf("\nPROGRAM TIME: %ldms, RATE: %2.2fKB/s\n", task_ticks - time_start, (float)fw_head.size / (task_ticks - time_start));
+						exit_flag = 1;
+					}
+				}
+			}
 		}
-		if(rec_time_out == 0) {
-			if(task_ticks - trec > 3000) {
-				// time out.
-				rec_time_out = 1;
-				printf("\n\e[0;31mTIME OUT!!!\e[0m\n");
+		usleep(100);
+		if(task_ticks - rx_time_stamp > 10000) {	// time out (10s).
+			exit_flag = 1;
+			printf("\n\e[0;31mUPGRADE TIME OUT!!!\e[0m\n");
+		}
+		if(last_wait > 0) {
+			if(task_ticks - last_wait > 2000) {
+				printf("\n\e[0;33mLOST THE LAST PACKAGE ...\e[0m\n");
+				exit_flag = 1;
 			}
 		}
 	}
@@ -119,5 +193,6 @@ static void timer_task(void)
 			task_ticks += now_ms - old_ms;
 			old_ms = now_ms;
 		}
+		usleep(500);
 	}
 }

@@ -8,8 +8,11 @@
 #ifndef APPS_LINKIF_CONF_H_
 #define APPS_LINKIF_CONF_H_
 
+#include "SysConfig.h"
+
 #include "uart.h"
 #include "DataTypes.h"
+#include "printPacket.h"
 
 #define HARD_DEV_ID                            (0x01) /* for upper monitor */
 
@@ -19,7 +22,7 @@
 
 #define COM_USER_TYPE                          TYPE_UPGRADE_REQUEST = 0x80, \
                                                TYPE_UPGRADE_DATA = 0x81, \
-                                               TYPE_UPGRADE_FC_ACK = 0x82,
+                                               TYPE_UPGRADE_DEV_ACK = 0x82,
 
 #define COM_USER_TYPE_DATA                     FWInfoDef FileInfo; \
                                                UpgradeDataDef PacketInfo; \

@@ -1,3 +1,10 @@
+/**
+ * @file    kyLink.c
+ * @author  kyChu
+ * @date    2017/08/20
+ * @version V0.8.0
+ * @brief   kylink protocol in ANSI C
+ */
 #include "kyLink.h"
 
 static uint8_t GotDataFlag = 0;
@@ -27,7 +34,7 @@ void InitCommPackage(CommPackageDef* pPacket)
 	pPacket->Packet.dev_id = HARD_DEV_ID;
 	pPacket->Packet.msg_id = TYPE_LINK_HEARTBEAT;
 	pPacket->Packet.length = 1;
-	pPacket->Packet.PacketData.Heartbeat._Cnt = 0;
+	pPacket->Packet.PacketData.Heartbeat = 0;
 	pPacket->Packet.crc16 = 0;
 }
 
@@ -49,6 +56,7 @@ static uint16_t do_crc_table(uint8_t *ptr, uint32_t len)
 void SendTxPacket(CommPackageDef* pPacket)
 {
   pPacket->Packet.crc16 = do_crc_table(&(pPacket->RawData[2]), pPacket->Packet.length + 4);
+  /* NOTE: DO NOT MAKE OPTIMIZATION */
   *(uint16_t *)&(pPacket->Packet.PacketData.pData[pPacket->Packet.length]) = pPacket->Packet.crc16;
   if(COM_IF_TX_CHECK())
     COM_IF_TX_BYTES(pPacket->RawData, pPacket->Packet.length + 8);
@@ -58,6 +66,7 @@ void SendTxPacket(CommPackageDef* pPacket)
 static uint8_t _rx_length = 0;
 static CommPackageDef _rx_packet = {0};
 static DECODE_STATE _decode_state = DECODE_STATE_UNSYNCED;
+
 /*
   decode process.
 */
@@ -121,3 +130,7 @@ void kyLink_DecodeProcess(uint8_t data)
     break;
   }
 }
+
+/**
+ * @ End of file.
+ */

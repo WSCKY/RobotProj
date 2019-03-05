@@ -1,6 +1,8 @@
 #ifndef __COMTYPES_H
 #define __COMTYPES_H
 
+#include <stdint.h>
+
 /* exact-width signed integer types */
 #ifndef int8_t
 typedef   signed          char int8_t;
@@ -22,6 +24,21 @@ typedef unsigned short     int uint16_t;
 #ifndef uint32_t
 typedef unsigned           int uint32_t;
 #endif
+
+/* __packed keyword used to decrease the data type alignment to 1-byte */
+#if defined (__CC_ARM)         /* ARM Compiler */
+  #define __PACK_BEGIN  __packed
+  #define __PACK_END
+#elif defined (__ICCARM__)     /* IAR Compiler */
+  #define __PACK_BEGIN  __packed
+  #define __PACK_END
+#elif defined   ( __GNUC__ )   /* GNU Compiler */
+  #define __PACK_BEGIN
+  #define __PACK_END    __attribute__ ((__packed__))
+#elif defined   (__TASKING__)  /* TASKING Compiler */
+  #define __PACK_BEGIN  __unaligned
+  #define __PACK_END
+#endif /* __CC_ARM */
 
 static const uint32_t crcTab16[256] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
