@@ -21,6 +21,7 @@ ENTRY(Reset_Handler)
 MEMORY
 {
   SRAM (xrw)      : ORIGIN = SYS_SRAM_ORIGIN, LENGTH = SYS_SRAM_LENGTH
+  FLASH_BOOT (rx) : ORIGIN = SYS_BOOT_ORIGIN, LENGTH = SYS_BOOT_LENGTH
   FLASH_TEXT (rx) : ORIGIN = SYS_TEXT_ORIGIN, LENGTH = SYS_TEXT_LENGTH
 }
 
@@ -35,13 +36,6 @@ _Min_Stack_Size = SYS_STACK_SIZE;     /* required amount of stack */
 SECTIONS
 {
   /* The startup code into FLASH memory */
-/*  .isr_vector :
-  {
-    . = ALIGN(4);
-    KEEP(*(.isr_vector))  Startup code
-    . = ALIGN(4);
-  } >FLASH_TEXT*/
-
   /* The program code and other data goes into FLASH */
   .text :
   {
@@ -61,7 +55,7 @@ SECTIONS
 
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
 
   /* Constant data goes into FLASH */
   .rodata :
@@ -70,38 +64,51 @@ SECTIONS
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH_TEXT
+  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >SYS_MAIN_FLASH
   .ARM : {
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
 
   .preinit_array     :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
   .init_array :
   {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT(.init_array.*)))
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
   .fini_array :
   {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT(.fini_array.*)))
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
-  } >FLASH_TEXT
+  } >SYS_MAIN_FLASH
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
+
+  .ram_isr (NOLOAD) :
+  {
+    . = ALIGN(4);
+    . = . + SYS_VECTOR_SIZE;
+  } >SYS_MAIN_MEMORY
+
+  .cdc_rx_buff (NOLOAD) :
+  {
+    . = ALIGN(4);
+    APP_Rx_Buffer = .;
+    . = . + APP_RX_DATA_SIZE;
+  } >SYS_MAIN_MEMORY
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
@@ -113,8 +120,8 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >SYS_MAIN_MEMORY AT> FLASH_TEXT
-  
+  } >SYS_MAIN_MEMORY AT> SYS_MAIN_FLASH
+
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss (NOLOAD) :
@@ -152,4 +159,3 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
-

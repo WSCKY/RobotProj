@@ -32,6 +32,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "stm32f0xx.h"
+#include "boardconfig.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -67,7 +68,7 @@
 #define INT_IN_TX_ADDRESS   (0x100)
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-uint8_t USBD_isEnabled(void);
+FlagStatus USBD_isEnabled(void);
 
 #endif /* __USB_CONF__H__ */
 

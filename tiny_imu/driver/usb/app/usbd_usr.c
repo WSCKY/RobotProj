@@ -27,7 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_usr.h"
-
+#include "uart2.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -41,7 +41,7 @@ USBD_Usr_cb_TypeDef USR_cb =
   USBD_NONE_cb,
 };
 
-static uint8_t USB_EnableFlag = 0;
+__IO uint32_t USB_EnableFlag = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -77,6 +77,7 @@ void USBD_USR_DeviceReset(uint8_t speed )
 */
 void USBD_USR_DeviceConfigured (void)
 {
+	uart2_TxByte('X');
   USB_EnableFlag = 1;
 }
 
@@ -105,6 +106,11 @@ void USBD_USR_DeviceSuspended(void)
 * @param  None
 * @retval Status
 */
-inline uint8_t USBD_isEnabled(void) { return USB_EnableFlag; }
+FlagStatus USBD_isEnabled(void) {
+	if(USB_EnableFlag != 0) {
+		return SET;
+	}
+	return RESET;
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

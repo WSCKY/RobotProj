@@ -134,9 +134,13 @@ clean:
 	-@echo 'Cleaned.'
 
 BINARY := $(OutPath)/$(ProjName).bin
+FIRMWARE := $(OutPath)/$(ProjName).fw
 
 flash: all
 	@st-flash --reset write $(BINARY) 0x08000000
+
+upgrade: all
+	@./../tools/flasher/Debug/flasher -f $(FIRMWARE)
 
 monitor:
 	@./../tools/monitor/Debug/monitor

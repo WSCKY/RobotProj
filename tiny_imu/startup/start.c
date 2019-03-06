@@ -14,6 +14,7 @@
 #if FREERTOS_ENABLED
 #include "cmsis_os.h"
 #endif /* FREERTOS_ENABLED */
+#include <string.h>
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -30,6 +31,8 @@
   */
 int main_app(void)
 {
+	memcpy((void *)SYS_SRAM_ORIGIN, (void*)SYS_TEXT_ORIGIN, SYS_VECTOR_SIZE);
+    SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
   /*!< At this stage the microcontroller clock setting is already configured, 
        this is done through SystemInit() function which is called from startup
        file (startup_stm32f0xx.s) before to branch to application main.

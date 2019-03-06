@@ -1,93 +1,29 @@
+/**
+ * @file    kyLink.h
+ * @author  kyChu
+ * @date    2017/08/20
+ * @version V0.8.0
+ * @brief   header file for kyLink.c
+ */
+
+/* Define to prevent recursive inclusion */
 #ifndef __KYLINK_H
 #define __KYLINK_H
 
-#include "SysConfig.h"
-#include "LinkIf_conf.h"
-#include "LinkVersion.h"
-
+/*
+ * Includes
+ */
 #include "ComTypes.h"
+#include "LinkVersion.h"
+/* user configure file */
+#include "LinkIf_conf.h"
 
-#ifndef MAIN_DATA_CACHE
-  #define MAIN_DATA_CACHE                        (32) /* 16 * n */
-#endif /* MAIN_DATA_CACHE */
-
-#define PACKET_CACHE                             (MAIN_DATA_CACHE + 8)
-
-#if FREERTOS_ENABLED
-  #ifndef MSG_QUEUE_DEPTH
-    #define MSG_QUEUE_DEPTH                      (3)
-  #endif /* MSG_QUEUE_DEPTH */
-#endif /* FREERTOS_ENABLED */
-
-#define kySTX1                                   (0x55)
-#define kySTX2                                   (0xAA)
-
-typedef enum {
-  DECODE_STATE_UNSYNCED  = 0,
-  DECODE_STATE_GOT_STX1  = 1,
-  DECODE_STATE_GOT_STX2  = 2,
-  DECODE_STATE_GOT_DEVID = 3,
-  DECODE_STATE_GOT_MSGID = 4,
-  DECODE_STATE_GOT_LEN_L = 5,
-  DECODE_STATE_GOT_LEN_H = 6,
-  DECODE_STATE_GOT_DATA  = 7,
-  DECODE_STATE_GOT_CRC_L = 8,
-} DECODE_STATE;
-
-typedef enum {
-  /* Communication Heartbeat */
-  TYPE_LINK_HEARTBEAT = 0x01,
-  /* Protocol Information */
-  TYPE_LINKRE_VER_Req = 0x02,
-  TYPE_LINKER_VER_Resp = 0x03,
-  TYPE_LINKER_NAME_Req = 0x04,
-#if defined(COM_USER_TYPE)
-  COM_USER_TYPE
-#endif
-} __packed PACKET_TYPE;
-
-typedef struct {
-	uint8_t _Cnt;
-} __packed HeartBeatDef;
-
-typedef struct {
-	uint16_t v;
-} __packed VersionResponseDef;
-
-typedef union {
-	uint8_t pData[MAIN_DATA_CACHE];
-	HeartBeatDef Heartbeat;
-	VersionResponseDef Version;
-#if defined(COM_USER_TYPE_DATA)
-  COM_USER_TYPE_DATA
-#endif
-} __packed PacketDataUnion;
-
-typedef struct {
-	uint8_t stx1;
-	uint8_t stx2;
-  uint8_t dev_id;
-  uint8_t msg_id;
-	uint16_t length;
-	PacketDataUnion PacketData;
-	uint16_t crc16;
-} __packed PackageStructDef;
-
-typedef union {
-	PackageStructDef Packet;
-	uint8_t RawData[PACKET_CACHE];
-} __packed CommPackageDef;
-
-#if FREERTOS_ENABLED
-extern QueueHandle_t lnk_recv_q;
-#else
-uint8_t GotNewData(void);
-CommPackageDef* GetRxPacket(void);
-#endif /* FREERTOS_ENABLED */
-
-void kyLink_Init(void);
-void SendTxPacket(CommPackageDef* pPacket);
-void kyLink_DecodeProcess(uint8_t data);
+/*
+ * Default Definitions
+ */
+#ifndef HARD_DEV_ID
+  #define HARD_DEV_ID                            (0)
+#endif /* HARD_DEV_ID */
 
 #ifndef COM_IF_TX_CHECK
   #define COM_IF_TX_CHECK()                      (0)
@@ -97,4 +33,114 @@ void kyLink_DecodeProcess(uint8_t data);
   #define COM_IF_TX_BYTES(...)                   ((void)0)
 #endif /* COM_IF_TX_BYTES */
 
+#ifndef MAIN_DATA_CACHE
+  #define MAIN_DATA_CACHE                        (32)
+#endif /* MAIN_DATA_CACHE */
+
+/* CACHE SIZE */
+#define PACKET_CACHE                             (MAIN_DATA_CACHE + 8)
+
+/* Frame Header */
+#define kySTX1                                   (0x55)
+#define kySTX2                                   (0xAA)
+
+/* Frame Structure definitions */
+__PACK_BEGIN typedef enum {
+  DECODE_STATE_UNSYNCED  = 0,
+  DECODE_STATE_GOT_STX1  = 1,
+  DECODE_STATE_GOT_STX2  = 2,
+  DECODE_STATE_GOT_DEVID = 3,
+  DECODE_STATE_GOT_MSGID = 4,
+  DECODE_STATE_GOT_LEN_L = 5,
+  DECODE_STATE_GOT_LEN_H = 6,
+  DECODE_STATE_GOT_DATA  = 7,
+  DECODE_STATE_GOT_CRC_L = 8,
+} __PACK_END DECODE_STATE;
+
+__PACK_BEGIN typedef enum {
+  /* Communication Heartbeat */
+  TYPE_LINK_HEARTBEAT = 0x01,
+  /* Protocol Information */
+  TYPE_LINKRE_VER_Req = 0x02,
+  TYPE_LINKER_VER_Resp = 0x03,
+  TYPE_LINKER_NAME_Req = 0x04,
+#if defined(COM_USER_TYPE)
+  COM_USER_TYPE
+#endif
+} __PACK_END PACKET_TYPE;
+
+__PACK_BEGIN typedef union {
+	uint8_t pData[MAIN_DATA_CACHE];
+	uint8_t Heartbeat;
+	uint8_t VersionReq;
+	uint16_t VersionAck;
+#if defined(COM_USER_TYPE_DATA)
+    COM_USER_TYPE_DATA
+#endif
+} __PACK_END PacketDataUnion;
+
+__PACK_BEGIN typedef struct {
+  uint8_t stx1;
+  uint8_t stx2;
+  uint8_t dev_id;
+  uint8_t msg_id;
+  uint16_t length;
+  PacketDataUnion PacketData;
+  uint16_t crc16;
+} __PACK_END PackageStructDef;
+
+__PACK_BEGIN typedef union {
+	PackageStructDef Packet;
+	uint8_t RawData[PACKET_CACHE];
+} __PACK_END CommPackageDef;
+
+static const uint32_t crcTab16[256] = {
+    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
+    0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
+    0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
+    0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
+    0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
+    0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
+    0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
+    0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
+    0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
+    0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
+    0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
+    0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
+    0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
+    0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
+    0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
+    0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
+    0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
+    0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
+    0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
+    0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
+    0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
+    0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
+    0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
+    0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
+    0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
+    0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
+    0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
+    0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
+    0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
+    0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
+    0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
+    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
+};
+
+/*
+ * Export function prototypes
+ */
+uint8_t GotNewData(void);
+CommPackageDef* GetRxPacket(void);
+void InitCommPackage(CommPackageDef* pPacket);
+
+void SendTxPacket(CommPackageDef* pPacket);
+void kyLink_DecodeProcess(uint8_t data);
+
 #endif /* __KYLINK_H */
+
+/**
+ * @ End of file.
+ */

@@ -20,7 +20,7 @@ typedef struct {
 	int16_t gyrX;
 	int16_t gyrY;
 	int16_t gyrZ;
-  uint32_t TimeStamp;
+    uint32_t TimeStamp;
 } __packed IMU_RAW;
 
 typedef struct {

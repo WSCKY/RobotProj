@@ -15,7 +15,7 @@ void intio_init(void)
 	GPIO_InitTypeDef   GPIO_InitStructure;
 	NVIC_InitTypeDef   NVIC_InitStructure;
 
-	/* Enable GPIOA clock */
+	/* Enable GPIOB clock */
 	RCC_AHBPeriphClockCmd(INTx_GPIO_CLK, ENABLE);
 
 	/* Configure INT pin as output pull up. */

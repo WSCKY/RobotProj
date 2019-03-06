@@ -7,7 +7,8 @@
 
 #include "mpu9250.h"
 
-static IMU_RAW mpu_raw_data;
+static uint8_t mpu9250_configured = 0;
+
 #if FREERTOS_ENABLED
 static QueueHandle_t mpu_queue = NULL;
 #else
@@ -17,8 +18,7 @@ static IMU_RAW mpu_buffer[MPU_DATA_DEPTH] = {0};
 #endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
 
-static uint8_t mpu9250_configured = 0;
-
+static IMU_RAW mpu_raw_data;
 static uint8_t mpu_tx_buffer[15] = {0};
 static uint8_t mpu_rx_buffer[15] = {0};
 
@@ -34,7 +34,7 @@ static void mpu_queue_create(void);
 
 #endif /* FREERTOS_ENABLED */
 
-uint16_t mpu_id = 0xFFFF; /* (mpu_id >> 8) = 0x71 */
+static uint16_t mpu_id = 0xFFFF; /* (mpu_id >> 8) = 0x71 */
 /*
  * configure the MPU9250 registers.
  */
