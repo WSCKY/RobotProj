@@ -16,12 +16,15 @@
 #define SYS_STACK_SIZE                      0x400
 
 #define SYS_BOOT_ORIGIN                     0x08000000
-#define SYS_BOOT_LENGTH                     8K
-#define SYS_TEXT_ORIGIN                     0x08000000
-#define SYS_TEXT_LENGTH                     32K
+#define SYS_BOOT_LENGTH                     6K
+#define SYS_TEXT_ORIGIN                     0x08001800
+#define SYS_TEXT_LENGTH                     26K
 #define SYS_SRAM_ORIGIN                     0x20000000
 #define SYS_SRAM_LENGTH                     6K
 
+#define SYS_MAIN_FLASH                      FLASH_BOOT
 #define SYS_MAIN_MEMORY                     SRAM
+
+#define BOOT_CACHE_SIZE                     (2000)
 
 #endif /* BOARDCONFIG_H_ */

@@ -13,10 +13,13 @@
 #include "uart2.h"
 #include "kyLink.h"
 
-//#include "eeprom.h"
+#define FLASH_PAGE_SIZE                ((uint32_t)0x00000400)   /* FLASH Page Size */
+#define FLASH_END_ADDRESS              ((uint32_t)0x08008000)
 
-//#include "usbd_cdc_core.h"
-//#include "usbd_usr.h"
-//#include "usbd_cdc_vcp.h"
+#define APPLICATION_ADDRESS            ((uint32_t)SYS_TEXT_ORIGIN)   /* Start @ of user Flash area */
+
+#define PACKAGE_NUM_PER_CACHE          (BOOT_CACHE_SIZE / FILE_DATA_CACHE)
+
+typedef  void (*pFunction)(void);
 
 #endif /* APPS_MAIN_TASK_H_ */
