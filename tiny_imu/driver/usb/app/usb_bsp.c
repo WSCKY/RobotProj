@@ -34,9 +34,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-#if defined USB_CLOCK_SOURCE_CRS
- static void CRS_Config(void);
-#endif /* USB_CLOCK_SOURCE_CRS */
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -52,7 +49,7 @@ void USB_BSP_Init(USB_CORE_HANDLE *pdev)
   interface APB clock is enabled.
   To enable SYSCFG APB clock use:
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE).*/
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+  RCC->APB2ENR |= RCC_APB2Periph_SYSCFG;
 
   /*!< PA11 and PA12 remapping bit for small packages (28 and 20 pins).
   0: No remap (pin pair PA9/10 mapped on the pins)
@@ -64,10 +61,10 @@ void USB_BSP_Init(USB_CORE_HANDLE *pdev)
 #endif /*USB_DEVICE_LOW_PWR_MGMT_SUPPORT */  
 
   /* Enable USB clock */
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
-  
+  RCC->APB1ENR |= RCC_APB1Periph_USB;
+
 #if defined USB_CLOCK_SOURCE_CRS
-  
+
   /*For using CRS, you need to do the following:
   - Enable HSI48 (managed by the SystemInit() function at the application startup)
   - Select HSI48 as USB clock
@@ -75,12 +72,24 @@ void USB_BSP_Init(USB_CORE_HANDLE *pdev)
   - Set AUTOTRIMEN
   - Set CEN
   */
-  
+
   /* Select HSI48 as USB clock */
-  RCC_USBCLKConfig(RCC_USBCLK_PLLCLK);
-  
+  /* Clear USBSW bit */
+  RCC->CFGR3 &= ~RCC_CFGR3_USBSW;
+  /* Set USBSW bits according to RCC_USBCLK value */
+  RCC->CFGR3 |= RCC_USBCLK_PLLCLK;
   /* Configure the Clock Recovery System */
-  CRS_Config();  
+  /*Enable CRS Clock*/
+  RCC->APB1ENR |= RCC_APB1Periph_CRS;
+  /* Select USB SOF as synchronization source */
+  /* Clear SYNCSRC[1:0] bits */
+  CRS->CFGR &= ~CRS_CFGR_SYNCSRC;
+  /* Set the SYNCSRC[1:0] bits according to CRS_Source value */
+  CRS->CFGR |= CRS_SYNCSource_USB;
+  /*Enables the automatic hardware adjustment of TRIM bits: AUTOTRIMEN:*/
+  CRS->CR |= CRS_CR_AUTOTRIMEN;
+  /*Enables the oscillator clock for frequency error counter CEN*/
+  CRS->CR |= CRS_CR_CEN;
 #else 
   /* Configure PLL to be used as USB clock:
      - Enable HSE external clock (for this example the system is clocked by HSI48
@@ -150,27 +159,4 @@ void USB_IRQHandler(void)
   USB_Istr();
 }
 
-#if defined USB_CLOCK_SOURCE_CRS
-/**
-  * @brief  Configure CRS peripheral to automatically trim the HSI 
-  *         oscillator according to USB SOF
-  * @param  None
-  * @retval None
-  */
-static void CRS_Config(void)
-{
-  /*Enable CRS Clock*/
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_CRS, ENABLE);
-  
-  /* Select USB SOF as synchronization source */
-  CRS_SynchronizationSourceConfig(CRS_SYNCSource_USB);
-  
-  /*Enables the automatic hardware adjustment of TRIM bits: AUTOTRIMEN:*/
-  CRS_AutomaticCalibrationCmd(ENABLE);
-  
-  /*Enables the oscillator clock for frequency error counter CEN*/
-  CRS_FrequencyErrorCounterCmd(ENABLE);
-}
-
-#endif
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

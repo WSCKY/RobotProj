@@ -34,26 +34,30 @@
 /* Private variables ---------------------------------------------------------*/
 USBD_Usr_cb_TypeDef USR_cb =
 {
-  USBD_USR_Init,
+  USBD_NONE_cb,
   USBD_USR_DeviceReset,
   USBD_USR_DeviceConfigured,
   USBD_USR_DeviceSuspended,
-  USBD_USR_DeviceResumed,  
+  USBD_NONE_cb,
 };
 
 static uint8_t USB_EnableFlag = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+void USBD_NONE_cb(void) {
+
+}
+
 /**
   * @brief  Device lib initialization
   * @param  None
   * @retval None
   */
-void USBD_USR_Init(void)
-{   
-  
-}
+//void USBD_USR_Init(void)
+//{
+//
+//}
 
 /**
   * @brief  Reset Event
@@ -92,9 +96,9 @@ void USBD_USR_DeviceSuspended(void)
   * @param  None
   * @retval None
   */
-void USBD_USR_DeviceResumed(void)
-{
-}
+//void USBD_USR_DeviceResumed(void)
+//{
+//}
 
 /**
 * @brief  Check USBD Status.
