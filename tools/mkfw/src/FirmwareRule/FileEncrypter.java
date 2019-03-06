@@ -58,11 +58,10 @@ public class FileEncrypter {
 					out.flush();
 				}
 			} else {
-				byte[] r_cache = new byte[CACHE_SIZE];
-				byte[] w_cache = new byte[CACHE_SIZE];
+				byte[] d_cache = new byte[CACHE_SIZE];
 				int nRead = 0;
-				while((nRead = in.read(r_cache)) != -1) {
-					out.write(w_cache, 0, nRead);
+				while((nRead = in.read(d_cache)) != -1) {
+					out.write(d_cache, 0, nRead);
 					out.flush();
 				}
 			}
