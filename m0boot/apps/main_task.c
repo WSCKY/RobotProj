@@ -129,6 +129,7 @@ void StartThread(void const * arg)
 		__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
 		Jump_To_Application();
 	}
+
 	for(;;) {
 		_delay_ms(500);
 		uart2_TxBytes((uint8_t *)jmp_err, 12);

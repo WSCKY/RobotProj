@@ -115,7 +115,7 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >SYS_MAIN_MEMORY AT> SYS_MAIN_FLASH
-  
+
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss (NOLOAD) :
@@ -153,4 +153,3 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
-

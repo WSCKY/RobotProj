@@ -10,10 +10,6 @@
 
 #include "ComTypes.h"
 
-//#if !defined(__packed)
-//#define __packed __attribute__((packed))
-//#endif /* !defined(__packed) */
-
 #define FILE_DATA_CACHE                        (80) /* 16 * n */
 #define MAIN_DATA_CACHE                        (FILE_DATA_CACHE + 5)
 
