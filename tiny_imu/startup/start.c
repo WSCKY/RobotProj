@@ -57,6 +57,7 @@ int main_app(void)
 #endif /* FREERTOS_ENABLED */
 	/* We should never get here as control is now taken by the scheduler */
 	for( ;; );
+	return 0;
 }
 
 #ifdef  USE_FULL_ASSERT
