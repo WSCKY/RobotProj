@@ -26,7 +26,7 @@ uint32_t PacketSendTimeOut = 0;
 
 uint8_t UpgradeComplete = 0;
 
-static const uint8_t jmp_err[12] = "JUMP FAILED\n";
+static const uint8_t jmp_err[7] = "FAILED\n";
 
 FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length);
 

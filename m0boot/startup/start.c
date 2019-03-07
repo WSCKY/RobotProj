@@ -37,7 +37,9 @@ int main_app(void)
        system_stm32f0xx.c file
      */
 	SystemCoreClockUpdate();
+#if SYSTICK_ENABLE
 	SysTick_Config(SystemCoreClock / 1000);
+#endif /* #if SYSTICK_ENABLE */
 	/* Enable Syscfg */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 

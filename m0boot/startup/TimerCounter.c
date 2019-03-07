@@ -41,7 +41,7 @@ void _TimeTicksInit(void)
 
 	/* NVIC configuration *******************************************************/
 	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x2;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = SYSTEM_TIMER_INT_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 

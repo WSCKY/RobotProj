@@ -19,6 +19,17 @@
 #include "cmsis_os.h"
 #endif /* FREERTOS_ENABLED */
 
+#define SYSTICK_ENABLE                 (0)
+
+/* Interrupt Priority Table */
+#define SYSTEM_TIMER_INT_PRIORITY      (0)
+
+#define UART2_RX_INT_PRIORITY          (1)
+#define UART2_TX_DMA_INT_PRIORITY      (3)
+#if SYSTICK_ENABLE
+#define SYSTICK_INT_PRIORITY           (3)
+#endif /* SYSTICK_ENABLE */
+
 #define UNUSED_VARIABLE(X)                       ((void)(X))
 #define UNUSED_PARAMETER(X)                      UNUSED_VARIABLE(X)
 #define UNUSED_RETURN_VALUE(X)                   UNUSED_VARIABLE(X)
