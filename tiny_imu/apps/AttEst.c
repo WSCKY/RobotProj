@@ -40,6 +40,11 @@ void mpu_update_hook(IMU_RAW *pRaw)
 	}
 }
 
+Quat_T get_est_q(void)
+{
+	return AttQ;
+}
+
 #define CALIB_BUFF_SIZE                          (100)
 static GyrRawDef GyrPeaceBuf[CALIB_BUFF_SIZE] = {0};
 static uint8_t PeaceDataCnt = 0, PeaceDataIndex = 0;

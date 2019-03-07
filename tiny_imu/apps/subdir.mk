@@ -6,15 +6,18 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ./apps/main_task.c \
-./apps/AttEst.c
+./apps/AttEst.c \
+./apps/com_task.c
 
 OBJS += \
 $(BuildPath)/apps/main_task.o \
-$(BuildPath)/apps/AttEst.o
+$(BuildPath)/apps/AttEst.o \
+$(BuildPath)/apps/com_task.o
 
 C_DEPS += \
 $(BuildPath)/apps/main_task.d \
-$(BuildPath)/apps/AttEst.d
+$(BuildPath)/apps/AttEst.d \
+$(BuildPath)/apps/com_task.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 

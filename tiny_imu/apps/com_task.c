@@ -1,87 +1,38 @@
 #include "com_task.h"
 
-#if FREERTOS_ENABLED
-//__ALIGN_BEGIN USB_OTG_CORE_HANDLE USB_OTG_dev __ALIGN_END;
+static uint32_t _init_flag = 0;
 
-static COM_MSG_DEF msg;
-static QueueHandle_t com_msg_q = NULL;
+static CommPackageDef *pRx;
+static CommPackageDef TxPacket;
+static Quat_T AttQ;
 
-static CommPackageDef TxPacket;// = {kySTX1, kySTX2};
-static CommPackageDef RxPacket;// = {kySTX1, kySTX2};
+static uint32_t tx_stamp = 0;
 
-static void COM_TX_Thread(void const *argument);
-static void COM_RX_Thread(void const *argument);
-
-//static void kyLinkByteHandler(uint8_t Data);
-//static void kyLinkBytesHandler(uint8_t *p, uint32_t l);
-
-void COM_Thread(void const *argument)
+void com_tx_task(void)
 {
-  UNUSED_PARAMETER(argument);
+	if(_init_flag == 0) {
+		_init_flag = 1;
 
-  /* hardware initialize. */
-//  ComPort_Init(kyLinkByteHandler);
-//  USB_CDC_CallbackRegistry(kyLinkBytesHandler); /* register callback handler function */
-//  USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb);
-
-  kyLink_Init();
-
-  osThreadDef(COM_TX, COM_TX_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4);
-  osThreadCreate(osThread(COM_TX), NULL);
-  osThreadDef(COM_RX, COM_RX_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadCreate(osThread(COM_RX), NULL);
-
-  vTaskDelete(NULL);
+		pRx = GetRxPacket();
+		TxPacket.Packet.stx1 = kySTX1;
+		TxPacket.Packet.stx2 = kySTX2;
+		TxPacket.Packet.dev_id = HARD_DEV_ID;
+	} else {
+		if(_Get_Millis() - tx_stamp > 20) {
+			tx_stamp = _Get_Millis();
+			AttQ = get_est_q();
+			TxPacket.Packet.msg_id = TYPE_ATT_QUAT_Resp;
+			TxPacket.Packet.length = sizeof(Quat_T);
+			for(uint32_t idx = 0; idx < TxPacket.Packet.length; idx ++) {
+				TxPacket.Packet.PacketData.pData[idx] = ((uint8_t *)&AttQ)[idx];
+			}
+			SendTxPacket(&TxPacket);
+		}
+	}
+	if(GotNewData()) {
+		if(pRx->Packet.msg_id == TYPE_UPGRADE_REQUEST && pRx->Packet.length == 16 &&
+		   pRx->Packet.PacketData.FileInfo.Enc_Type == ENC_TYPE_PLAIN) {
+			NVIC_SystemReset();
+		}
+	}
 }
-
-static void COM_TX_Thread(void const *argument)
-{
-  UNUSED_PARAMETER(argument);
-  uint32_t index = 0;
-  portBASE_TYPE xTaskWokenByReceive = pdFALSE;
-
-  com_msg_q = xQueueCreate(10, sizeof(COM_MSG_DEF));
-  TxPacket.Packet.dev_id = HARD_DEV_ID;
-  TxPacket.Packet.msg_id = TYPE_IMU_INFO_Resp;
-  TxPacket.Packet.length = sizeof(IMU_INFO_DEF);
-  for(;;) {
-    if(xQueueReceiveFromISR(com_msg_q, &msg, &xTaskWokenByReceive) == pdPASS) {
-      TxPacket.Packet.length = msg.len;
-      TxPacket.Packet.msg_id = msg.type;
-      for(index = 0; index < msg.len; index ++) {
-        TxPacket.Packet.PacketData.pData[index] = ((uint8_t *)msg.pointer)[index];
-      }
-      SendTxPacket(&TxPacket);
-    }
-  }
-}
-
-static void COM_RX_Thread(void const *argument)
-{
-  UNUSED_PARAMETER(argument);
-  portBASE_TYPE xTaskWokenByReceive = pdFALSE; 
-  for(;;) {
-    if(xQueueReceiveFromISR(lnk_recv_q, &RxPacket, &xTaskWokenByReceive) == pdPASS) {
-
-    }
-  }
-}
-
-QueueHandle_t* get_com_msg_send_queue(void)
-{
-  return &com_msg_q;
-}
-
-//static void kyLinkBytesHandler(uint8_t *p, uint32_t l)
-//{
-//  while(l --) {
-//    kyLink_DecodeProcess(*p ++);
-//  }
-//}
-//
-//static void kyLinkByteHandler(uint8_t Data)
-//{
-////  kyLink_DecodeProcess(Data);
-//}
-
-#endif /* FREERTOS_ENABLED */

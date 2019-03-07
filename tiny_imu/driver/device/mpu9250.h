@@ -24,8 +24,8 @@
 #define imu_int_init              intio_init
 #define imu_int_setcallback       intio_set_irq_handler
 #define imu_spi_config_rate       spi1_configrate
-#define spi_rx_tx_dma             spi1_rx_tx
-#define spi_rx_tx_dma_util        spi1_rx_tx
+#define spi_rx_tx_dma             spi1_rx_tx_dma
+#define spi_rx_tx_dma_util        spi1_rx_tx_dma_util
 
 #define IMU_SPI_SLOW_RATE         SPI_BaudRatePrescaler_128 /* 48 / 64 = 0.75MHz */
 #define IMU_SPI_FAST_RATE         SPI_BaudRatePrescaler_8   /* 48 / 8 = 6MHz */

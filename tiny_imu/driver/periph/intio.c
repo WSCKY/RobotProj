@@ -40,7 +40,7 @@ void intio_init(void)
 
 	/* Enable and set EXTIx Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = INTx_EXTI_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x01;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = IMU_UPDATE_INT_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }

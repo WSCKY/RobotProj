@@ -24,9 +24,11 @@
 #define COM_IF_TX_BYTES(p, l)          uart2_TxBytesDMA((uint8_t *)p, (uint32_t)l)
 
 #define COM_USER_TYPE                  TYPE_IMU_INFO_Resp = 0x11, \
-                                       TYPE_ATT_QUAT_Resp = 0x12,
+                                       TYPE_ATT_QUAT_Resp = 0x12, \
+									   TYPE_UPGRADE_REQUEST = 0x80
 
 #define COM_USER_TYPE_DATA             IMU_INFO_DEF IMU_InfoData; \
-                                       Quat_T AttitudeQuat;
+                                       Quat_T AttitudeQuat; \
+                                       FWInfoDef FileInfo;
 
 #endif /* LINKIF_CONF_H_ */

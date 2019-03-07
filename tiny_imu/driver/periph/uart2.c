@@ -70,16 +70,16 @@ void uart2_init(PortRecvByteCallback p)
 
 	/* Enable the UART2 Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = UART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x6;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = UART2_RX_INT_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
 	/* Enable the UART2 Receive Interrupt */
 	USART_ITConfig(UART2, USART_IT_RXNE, ENABLE);
-
+#if UART2_DMA_ENABLE
 	/* Enable the UART2 Tx DMA requests */
 	USART_DMACmd(UART2, USART_DMAReq_Tx, ENABLE);
-
+#endif /* UART2_DMA_ENABLE */
 	/* Enable UART2 */
 	USART_Cmd(UART2, ENABLE);
 
@@ -111,7 +111,7 @@ static void dma_config(void)
 
 	/* Enable the UART2_DMA Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = UART2_DMA_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x5;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = UART2_TX_DMA_INT_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 

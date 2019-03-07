@@ -37,6 +37,10 @@ typedef unsigned          char uint8_t;
 #ifndef uint16_t
 typedef unsigned short     int uint16_t;
 #endif
+#ifndef _UINT32_T_DECLARED
+typedef __uint32_t uint32_t ;
+#define _UINT32_T_DECLARED
+#endif
 //#ifndef uint32_t
 //typedef unsigned           int uint32_t;
 //#endif

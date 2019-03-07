@@ -1,9 +1,10 @@
 #ifndef __COM_TASK_H
 #define __COM_TASK_H
 
-#if FREERTOS_ENABLED
-
 #include "kyLink.h"
+#include "AttEst.h"
+
+#if FREERTOS_ENABLED
 
 //#include "ComPort.h"
 //
@@ -23,5 +24,7 @@ void COM_Thread(void const *argument);
 QueueHandle_t* get_com_msg_send_queue(void);
 
 #endif /* FREERTOS_ENABLED */
+
+void com_tx_task(void);
 
 #endif /* __COM_TASK_H */

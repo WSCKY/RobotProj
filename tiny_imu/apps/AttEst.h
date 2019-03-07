@@ -12,4 +12,6 @@
 
 #include "maths.h"
 
+Quat_T get_est_q(void);
+
 #endif /* __ATTEST_H */
