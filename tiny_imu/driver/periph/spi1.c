@@ -150,7 +150,7 @@ void spi1_rx_tx(uint8_t *w, uint8_t *r, uint16_t l)
 #if SPI1_DMA_ENABLE
 void spi1_rx_tx_dma(uint8_t *w, uint8_t *r, uint16_t l)
 {
-	while (_tx_comp_flag == 0);
+	while (_tx_comp_flag == 0) {}
 	_tx_comp_flag = 0;
 	SPI1_NSS_ENABLE();
 	DMA_InitStructure.DMA_BufferSize = l;
@@ -168,7 +168,7 @@ void spi1_rx_tx_dma(uint8_t *w, uint8_t *r, uint16_t l)
 void spi1_rx_tx_dma_util(uint8_t *w, uint8_t *r, uint16_t l)
 {
 	spi1_rx_tx_dma(w, r, l);
-	while (_tx_comp_flag == 0);
+	while (_tx_comp_flag == 0) {}
 }
 #endif /* SPI1_DMA_ENABLE */
 

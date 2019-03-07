@@ -11,7 +11,7 @@
 #include "SysConfig.h"
 
 /* Not available on STM32F04x devices ??? */
-#define UART2_DMA_ENABLE                    (0)
+#define UART2_DMA_ENABLE                    (1)
 
 #define UART2                               USART2
 #define UART2_GPIO                          GPIOA
@@ -19,7 +19,6 @@
 #define UART2_GPIO_CLK                      RCC_AHBPeriph_GPIOA
 #define UART2_CLK                           RCC_APB1Periph_USART2
 #define UART2_CLK_CMD                       RCC_APB1PeriphClockCmd
-#define UART2_TDR_Address                   0x40004428
 #define UART2_RxPin                         GPIO_Pin_3
 #define UART2_TxPin                         GPIO_Pin_2
 #define UART2_RxPin_AF                      GPIO_PinSource3
@@ -31,8 +30,8 @@
 #define UART2_DMA                           DMA1_Channel4
 #define UART2_DMA_CLK                       RCC_AHBPeriph_DMA1
 #define UART2_DMA_CLK_CMD                   RCC_AHBPeriphClockCmd
-#define UART2_DMA_TC_FLAG                   DMA1_FLAG_TC4
-#define UART2_DMA_IRQn                      11                         /*!< DMA1 Channel 4, Channel 5 Interrupts */
+#define UART2_DMA_IT_TC_FLAG                DMA1_IT_TC4
+#define UART2_DMA_IRQn                      DMA1_Channel4_5_IRQn   /*!< DMA1 Channel 4, Channel 5 Interrupts */
 #define UART2_DMA_IRQHandler                DMA1_Channel4_5_IRQHandler
 #endif /* UART2_DMA_ENABLE */
 

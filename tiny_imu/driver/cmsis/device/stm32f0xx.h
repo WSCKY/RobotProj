@@ -341,7 +341,7 @@ typedef enum IRQn
   TSC_IRQn                    = 8,      /*!< TSC Interrupt                                                 */
   DMA1_Channel1_IRQn          = 9,      /*!< DMA1 Channel 1 Interrupt                                      */
   DMA1_Channel2_3_IRQn        = 10,     /*!< DMA1 Channel 2 and Channel 3 Interrupts                       */
-  DMA1_Channel4_5_IRQn        = 11,     /*!< DMA1 Channel 4, Channel 5 Interrupts                          */
+  DMA1_Channel4_5_6_7_IRQn    = 11,     /*!< DMA1 Channel 4, Channel 5 Interrupts                          */
   ADC1_IRQn                   = 12,     /*!< ADC1 Interrupts                                               */
   TIM1_BRK_UP_TRG_COM_IRQn    = 13,     /*!< TIM1 Break, Update, Trigger and Commutation Interrupts        */
   TIM1_CC_IRQn                = 14,     /*!< TIM1 Capture Compare Interrupt                                */

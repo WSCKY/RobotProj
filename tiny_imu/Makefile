@@ -31,11 +31,18 @@ INCS = -I$(TopPath)/startup \
 LD_INCS = -I$(TopPath)/sysconfig
 
 # Global definitions
-DEFS = -DSTM32 -DSTM32F0 -DSTM32F042G6Ux -DDEBUG -DSTM32F042 -DUSE_STDPERIPH_DRIVER
+DEFS = -DSTM32 -DSTM32F0 -DSTM32F042G6Ux -DSTM32F042 -DUSE_STDPERIPH_DRIVER
 
 # Other configuration
 CFGS = -mthumb -Dprintf=iprintf -fno-exceptions
 LD_CFGS = --specs=nano.specs
+
+ifeq ($(D), 1)
+# Debug information
+DBGS = -DDEBUG -g3
+else
+DBGS =
+endif
 
 # Set verbosity
 ifeq ($(V), 1)

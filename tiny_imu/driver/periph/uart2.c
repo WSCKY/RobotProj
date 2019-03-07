@@ -93,6 +93,9 @@ static void dma_config(void)
 	/* Enable UART2_DMA Clock */
 	UART2_DMA_CLK_CMD(UART2_DMA_CLK, ENABLE);
 
+	DMA_DeInit(UART2_DMA);
+	DMA_Cmd(UART2_DMA, DISABLE);
+
 	/* UART2_DMA configuration */
 	DMA_InitStructure.DMA_BufferSize = 0;
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -104,7 +107,7 @@ static void dma_config(void)
 	DMA_InitStructure.DMA_MemoryBaseAddr = 0;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
 	DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
-	DMA_InitStructure.DMA_PeripheralBaseAddr = UART2_TDR_Address;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(UART2->TDR);
 	DMA_Init(UART2_DMA, &DMA_InitStructure);
 
 	DMA_ITConfig(UART2_DMA, DMA_IT_TC, ENABLE);
@@ -155,10 +158,10 @@ void uart2_set_callback(PortRecvByteCallback p)
 void UART2_DMA_IRQHandler(void)
 {
 	/* check if transfer complete flag is set. */
-	if(DMA_GetITStatus(DMA1_IT_TC4)) {
+	if(DMA_GetITStatus(UART2_DMA_IT_TC_FLAG)) {
 		DMA_Cmd(UART2_DMA, DISABLE);
 		_tx_comp_flag = 1;
-		DMA_ClearITPendingBit(DMA1_IT_TC4);
+		DMA_ClearITPendingBit(UART2_DMA_IT_TC_FLAG);
 	}
 }
 #endif /* UART2_DMA_ENABLE */
@@ -170,7 +173,7 @@ void UART2_IRQHandler(void)
 		USART_ClearITPendingBit(UART2, USART_IT_RXNE);
 
 		if(pCallback != 0) {
-			pCallback(USART_ReceiveData(UART2));
+			pCallback(UART2->RDR & 0xFF);
 		}
 	}
 }
