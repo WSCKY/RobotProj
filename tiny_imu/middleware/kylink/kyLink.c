@@ -53,6 +53,8 @@ static uint16_t do_crc_table(uint8_t *ptr, uint32_t len)
   return(crc);
 }
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 void SendTxPacket(CommPackageDef* pPacket)
 {
   pPacket->Packet.crc16 = do_crc_table(&(pPacket->RawData[2]), pPacket->Packet.length + 4);
@@ -61,6 +63,7 @@ void SendTxPacket(CommPackageDef* pPacket)
   if(COM_IF_TX_CHECK())
     COM_IF_TX_BYTES(pPacket->RawData, pPacket->Packet.length + 8);
 }
+#pragma GCC pop_options
 
 /* decoder required. */
 static uint8_t _rx_length = 0;
