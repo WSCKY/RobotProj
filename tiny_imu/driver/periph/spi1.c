@@ -148,6 +148,8 @@ void spi1_rx_tx(uint8_t *w, uint8_t *r, uint16_t l)
 }
 
 #if SPI1_DMA_ENABLE
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 void spi1_rx_tx_dma(uint8_t *w, uint8_t *r, uint16_t l)
 {
 	while (_tx_comp_flag == 0) {}
@@ -170,6 +172,7 @@ void spi1_rx_tx_dma_util(uint8_t *w, uint8_t *r, uint16_t l)
 	spi1_rx_tx_dma(w, r, l);
 	while (_tx_comp_flag == 0) {}
 }
+#pragma GCC pop_options
 #endif /* SPI1_DMA_ENABLE */
 
 void spi1_configrate(uint32_t scalingfactor)
