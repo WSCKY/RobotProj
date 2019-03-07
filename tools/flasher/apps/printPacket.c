@@ -18,4 +18,5 @@ int debug_write(char *p, size_t l)
 		p ++;
 	}
 	fflush(stdout);
+	return 0;
 }
