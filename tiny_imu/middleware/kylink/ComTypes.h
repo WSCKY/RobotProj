@@ -26,9 +26,10 @@ typedef   signed          char int8_t;
 #ifndef int16_t
 typedef   signed short     int int16_t;
 #endif
-//#ifndef int32_t
-//typedef   signed           int int32_t;
-//#endif
+#ifndef _INT32_T_DECLARED
+typedef   signed           int int32_t;
+#define _INT32_T_DECLARED
+#endif
 
 /* exact-width unsigned integer types */
 #ifndef uint8_t
@@ -38,12 +39,9 @@ typedef unsigned          char uint8_t;
 typedef unsigned short     int uint16_t;
 #endif
 #ifndef _UINT32_T_DECLARED
-typedef __uint32_t uint32_t ;
+typedef unsigned           int uint32_t;
 #define _UINT32_T_DECLARED
 #endif
-//#ifndef uint32_t
-//typedef unsigned           int uint32_t;
-//#endif
 
 typedef void (*PortRecvByteCallback)(uint8_t Data);
 
