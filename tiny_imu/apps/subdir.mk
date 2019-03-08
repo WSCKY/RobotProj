@@ -7,17 +7,20 @@
 C_SRCS += \
 ./apps/main_task.c \
 ./apps/AttEst.c \
-./apps/com_task.c
+./apps/com_task.c \
+./apps/printHardFault.c
 
 OBJS += \
 $(BuildPath)/apps/main_task.o \
 $(BuildPath)/apps/AttEst.o \
-$(BuildPath)/apps/com_task.o
+$(BuildPath)/apps/com_task.o \
+$(BuildPath)/apps/printHardFault.o
 
 C_DEPS += \
 $(BuildPath)/apps/main_task.d \
 $(BuildPath)/apps/AttEst.d \
-$(BuildPath)/apps/com_task.d
+$(BuildPath)/apps/com_task.d \
+$(BuildPath)/apps/printHardFault.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 

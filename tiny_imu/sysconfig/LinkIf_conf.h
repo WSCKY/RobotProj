@@ -13,6 +13,8 @@
 #include "SysDataTypes.h"
 
 #include "uart2.h"
+#include "usbd_usr.h"
+#include "usbd_cdc_vcp.h"
 
 #define MAIN_DATA_CACHE                (32) /* 16 * n */
 #define MSG_QUEUE_DEPTH                (3)
@@ -21,7 +23,7 @@
 
 #define COM_IF_TX_CHECK()              (1)
 
-#define COM_IF_TX_BYTES(p, l)          uart2_TxBytesDMA((uint8_t *)p, (uint32_t)l)
+#define COM_IF_TX_BYTES(p, l)          do { uart2_TxBytesDMA((uint8_t *)p, (uint32_t)l); if(USBD_isEnabled()) USB_CDC_SendBufferFast(p, l); } while(0)
 
 #define COM_USER_TYPE                  TYPE_IMU_INFO_Resp = 0x11, \
                                        TYPE_ATT_QUAT_Resp = 0x12, \

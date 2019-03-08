@@ -95,7 +95,7 @@ all: $(ProjName).elf | $(BuildPath)
 -include sources.mk
 -include startup/subdir.mk
 -include apps/subdir.mk
-#-include driver/usb/subdir.mk
+-include driver/usb/subdir.mk
 -include driver/periph/subdir.mk
 -include driver/device/subdir.mk
 -include driver/stdriver/src/subdir.mk

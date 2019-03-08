@@ -24,9 +24,9 @@
 /* Interrupt Priority Table */
 #define SYSTEM_TIMER_INT_PRIORITY      (0)
 
-#define USB_DEVICE_INT_PRIORITY        (0)
-#define IMU_SPI_DMA_INT_PRIORITY       (1)
-#define IMU_UPDATE_INT_PRIORITY        (2)
+#define USB_DEVICE_INT_PRIORITY        (2)
+#define IMU_SPI_DMA_INT_PRIORITY       (0)
+#define IMU_UPDATE_INT_PRIORITY        (1)
 #define UART2_RX_INT_PRIORITY          (1)
 #define UART2_TX_DMA_INT_PRIORITY      (3)
 #if SYSTICK_ENABLE
