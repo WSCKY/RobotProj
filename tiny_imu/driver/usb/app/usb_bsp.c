@@ -144,7 +144,7 @@ void USB_BSP_EnableInterrupt(USB_CORE_HANDLE *pdev)
   
   /* Enable the USB interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = USB_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPriority = USB_IT_PRIO;
+  NVIC_InitStructure.NVIC_IRQChannelPriority = USB_DEVICE_INT_PRIORITY;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 }

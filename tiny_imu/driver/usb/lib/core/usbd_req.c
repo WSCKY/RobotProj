@@ -33,7 +33,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint32_t ADDRESS=0;
-uint8_t USBD_StrDesc[USB_MAX_STR_DESC_SIZ] ;
+
+/* should be word aligned */
+uint8_t USBD_StrDesc[USB_MAX_STR_DESC_SIZ] __attribute__ ((aligned (4)));
 
 /* Private function prototypes -----------------------------------------------*/
 static void USBD_GetDescriptor(USB_CORE_HANDLE  *pdev, 
