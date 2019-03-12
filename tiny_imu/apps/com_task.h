@@ -25,6 +25,7 @@ QueueHandle_t* get_com_msg_send_queue(void);
 
 #endif /* FREERTOS_ENABLED */
 
-void com_tx_task(void);
+void com_task(void);
+void com_task_init(void);
 
 #endif /* __COM_TASK_H */

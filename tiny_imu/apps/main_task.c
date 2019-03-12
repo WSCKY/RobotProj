@@ -18,7 +18,7 @@ void StartThread(void const * arg)
 {
 	user_io_init();
 	pwm_init(0);
-	uart2_init(kyLink_DecodeProcess);
+	uart2_init();
 	_delay_ms(50);
 	/* The Application layer has only to call USBD_Init to
 	initialize the USB low level driver, the USB device library, the USB clock
@@ -29,8 +29,9 @@ void StartThread(void const * arg)
 	sEE_Init();
 	mpu9250_init();
 	_delay_ms(10);
+	com_task_init();
 	for(;;) {
-		com_tx_task();
+		com_task();
 //		uart2_TxBytesDMA((uint8_t *)"kyChu\n", 6);
 //		if(USBD_isEnabled()) {
 //			USB_CDC_SendBufferFast((uint8_t *)"kyChu\n", 6);
