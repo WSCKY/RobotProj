@@ -12,6 +12,8 @@ static uint8_t _uart2_init_flag = 0;
 static uint32_t _tx_comp_flag = 1;
 static DMA_InitTypeDef DMA_InitStructure;
 
+extern uint8_t UART_RX_CACHE[UART_RX_CACHE_SIZE];
+
 static void dma_config(void);
 #endif /* UART2_DMA_ENABLE */
 

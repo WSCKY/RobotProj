@@ -10,6 +10,7 @@
 
 #include "stm32f0xx.h"
 
+#include "boardconfig.h"
 #include "SysDataTypes.h"
 
 #include "TimerCounter.h"

@@ -28,6 +28,8 @@
 /*  Total size of IN buffer:  Total size of USB IN buffer: APP_RX_DATA_SIZE*8/MAX_BAUDARATE*1000 should be > CDC_IN_FRAME_INTERVAL */
 #define APP_RX_DATA_SIZE                    768
 
+#define UART_RX_CACHE_SIZE                  88
+
 #define SYS_MAIN_FLASH                      FLASH_TEXT
 #define SYS_MAIN_MEMORY                     SRAM
 
