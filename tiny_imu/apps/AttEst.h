@@ -13,5 +13,6 @@
 #include "maths.h"
 
 Quat_T get_est_q(void);
+IMU_UNIT get_imu_unit(void);
 
 #endif /* __ATTEST_H */

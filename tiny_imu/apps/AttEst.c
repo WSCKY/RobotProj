@@ -45,6 +45,11 @@ Quat_T get_est_q(void)
 	return AttQ;
 }
 
+IMU_UNIT get_imu_unit(void)
+{
+	return imu_unit;
+}
+
 #define CALIB_BUFF_SIZE                          (100)
 static GyrRawDef GyrPeaceBuf[CALIB_BUFF_SIZE] = {0};
 static uint8_t PeaceDataCnt = 0, PeaceDataIndex = 0;
