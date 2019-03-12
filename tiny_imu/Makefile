@@ -149,6 +149,9 @@ flash: all
 upgrade: all
 	@./../tools/flasher/Debug/flasher -f $(FIRMWARE)
 
+linkck:
+	@./../tools/linkck/Debug/linkck
+
 monitor:
 	@./../tools/monitor/Debug/monitor
 

@@ -44,8 +44,13 @@ void uart2_init(PortRecvByteCallback p)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(UART2_GPIO, &GPIO_InitStructure);
 
+	USART_DeInit(UART2);
+	USART_Cmd(UART2, DISABLE);
+	USART_ITConfig(UART2, USART_IT_RXNE, DISABLE);
+
 	/* Enable UART2 Clock */
 	UART2_CLK_CMD(UART2_CLK, ENABLE);
+
 #if UART2_DMA_ENABLE
 	dma_config();
 #endif /* UART2_DMA_ENABLE */
@@ -169,11 +174,10 @@ void UART2_IRQHandler(void)
 {
 	USART_ClearFlag(UART2, USART_FLAG_ORE | USART_FLAG_PE);
 	if(USART_GetITStatus(UART2, USART_IT_RXNE) != RESET) {
-		USART_ClearFlag(UART2, USART_FLAG_RXNE);
-		USART_ClearITPendingBit(UART2, USART_IT_RXNE);
-
 		if(pCallback != 0) {
 			pCallback(UART2->RDR & 0xFF);
 		}
+		USART_ClearFlag(UART2, USART_FLAG_RXNE);
+		USART_ClearITPendingBit(UART2, USART_IT_RXNE);
 	}
 }

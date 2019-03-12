@@ -30,6 +30,7 @@ void com_tx_task(void)
 		}
 	}
 	if(GotNewData()) {
+		USER_LED_TOG();
 		if(pRx->Packet.msg_id == TYPE_UPGRADE_REQUEST && pRx->Packet.length == 16 &&
 		   pRx->Packet.PacketData.FileInfo.Enc_Type == ENC_TYPE_PLAIN) {
 			__disable_irq();

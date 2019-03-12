@@ -10,12 +10,12 @@
 
 #include "SysConfig.h"
 
-#include "uart2.h"
-#include "kyLink.h"
+#include "ifconfig.h"
 
 #include "eeprom.h"
 #include "mpu9250.h"
 
+#include "kyLink.h"
 #include "com_task.h"
 
 #include "usbd_cdc_core.h"

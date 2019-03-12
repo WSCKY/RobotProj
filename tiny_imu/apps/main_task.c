@@ -16,6 +16,8 @@ USB_CORE_HANDLE USB_Device_dev;
   */
 void StartThread(void const * arg)
 {
+	user_io_init();
+	pwm_init(0);
 	uart2_init(kyLink_DecodeProcess);
 	_delay_ms(50);
 	/* The Application layer has only to call USBD_Init to
