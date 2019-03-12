@@ -26,7 +26,7 @@ uint32_t PacketSendTimeOut = 0;
 
 uint8_t UpgradeComplete = 0;
 
-static const uint8_t jmp_err[7] = "FAILED\n";
+//static const uint8_t jmp_err[7] = "FAILED\n";
 
 FLASH_Status FLASH_If_ProgramWords(uint32_t Address, uint8_t *pData, uint32_t Length);
 
@@ -112,12 +112,15 @@ void StartThread(void const * arg)
 				SendTxPacket(&TxPacket);
 				PacketSendStartTime = _Get_Millis();
 				if(UpgradeComplete == 1) {
+					_delay_ms(20);
 					break;
 				}
 			}
 		}
 		FLASH_Lock();
 	}
+
+	uart2_deinit();
 
 	/* Check Vector Table: Test if user code is programmed starting from address
 		"APPLICATION_ADDRESS" */
@@ -131,8 +134,8 @@ void StartThread(void const * arg)
 	}
 
 	for(;;) {
-		_delay_ms(500);
-		uart2_TxBytes((uint8_t *)jmp_err, 12);
+//		_delay_ms(500);
+//		uart2_TxBytes((uint8_t *)jmp_err, 7);
 	}
 }
 
