@@ -37,6 +37,7 @@
 
 typedef void (*PortRecvByteCallback)(uint8_t Data);
 
+void uart2_deinit(void);
 void uart2_init(PortRecvByteCallback p);
 
 void uart2_TxByte(uint8_t c);

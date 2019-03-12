@@ -85,6 +85,20 @@ void uart2_init(PortRecvByteCallback p)
 
 	_uart2_init_flag = 1;
 }
+
+void uart2_deinit(void)
+{
+	USART_Cmd(UART2, DISABLE);
+	USART_ITConfig(UART2, USART_IT_RXNE, DISABLE);
+#if UART2_DMA_ENABLE
+	DMA_ITConfig(UART2_DMA, DMA_IT_TC, DISABLE);
+	USART_DMACmd(UART2, USART_DMAReq_Tx, DISABLE);
+	DMA_Cmd(UART2_DMA, DISABLE);
+	DMA_DeInit(UART2_DMA);
+	NVIC->ICER[0] = (uint32_t)0x01 << (UART2_DMA_IRQn & (uint8_t)0x1F);
+#endif
+}
+
 #if UART2_DMA_ENABLE
 static void dma_config(void)
 {
