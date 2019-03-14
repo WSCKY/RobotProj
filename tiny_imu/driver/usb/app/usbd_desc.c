@@ -123,7 +123,6 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len);
 uint8_t *  USBD_USR_DeviceDescriptor( uint8_t speed , uint16_t *length)
 {
   *length = sizeof(USBD_DeviceDesc);
-//  uart2_TxByte('A');
   return (uint8_t*)USBD_DeviceDesc;
 }
 
@@ -136,7 +135,6 @@ uint8_t *  USBD_USR_DeviceDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_LangIDStrDescriptor( uint8_t speed , uint16_t *length)
 {
   *length =  sizeof(USBD_LangIDDesc);
-//  uart2_TxByte('B');
   return (uint8_t*)USBD_LangIDDesc;
 }
 
@@ -150,7 +148,6 @@ uint8_t *  USBD_USR_LangIDStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_ProductStrDescriptor( uint8_t speed , uint16_t *length)
 {
   USBD_GetString ( (uint8_t*)USBD_PRODUCT_FS_STRING, USBD_StrDesc, length);
-//  uart2_TxByte('C');
   return USBD_StrDesc;
 }
 
@@ -163,7 +160,6 @@ uint8_t *  USBD_USR_ProductStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_ManufacturerStrDescriptor( uint8_t speed , uint16_t *length)
 {
   USBD_GetString ( (uint8_t*)USBD_MANUFACTURER_STRING, USBD_StrDesc, length);
-//  uart2_TxByte('D');
   return USBD_StrDesc;
 }
 
@@ -176,7 +172,6 @@ uint8_t *  USBD_USR_ManufacturerStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_SerialStrDescriptor( uint8_t speed , uint16_t *length)
 {
   *length = USB_SIZ_STRING_SERIAL;
-//  uart2_TxByte('E');
   return USBD_StringSerial;
 }
 
@@ -189,7 +184,6 @@ uint8_t *  USBD_USR_SerialStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 {
   USBD_GetString ( (uint8_t*)USBD_CONFIGURATION_FS_STRING, USBD_StrDesc, length);
-//  uart2_TxByte('F');
   return USBD_StrDesc;  
 }
 
@@ -203,7 +197,6 @@ uint8_t *  USBD_USR_ConfigStrDescriptor( uint8_t speed , uint16_t *length)
 uint8_t *  USBD_USR_InterfaceStrDescriptor( uint8_t speed , uint16_t *length)
 {
   USBD_GetString ( (uint8_t*)USBD_INTERFACE_FS_STRING, USBD_StrDesc, length);
-//  uart2_TxByte('G');
   return USBD_StrDesc;  
 }
 
@@ -216,9 +209,9 @@ void Get_SerialNum(void)
 {
   uint32_t Device_Serial0, Device_Serial1, Device_Serial2;
   
-  Device_Serial0 = Device1_Identifier;//*(uint32_t*)
-  Device_Serial1 = Device2_Identifier;//*(uint32_t*)
-  Device_Serial2 = Device3_Identifier;//*(uint32_t*)
+  Device_Serial0 = *(uint32_t*)Device1_Identifier;
+  Device_Serial1 = *(uint32_t*)Device2_Identifier;
+  Device_Serial2 = *(uint32_t*)Device3_Identifier;
   
   Device_Serial0 += Device_Serial2;
   
@@ -227,7 +220,6 @@ void Get_SerialNum(void)
     IntToUnicode (Device_Serial0, &USBD_StringSerial[2] ,8);
     IntToUnicode (Device_Serial1, &USBD_StringSerial[18] ,4);
   }
-//  uart2_TxByte('H');
 }
 
 /**
@@ -259,4 +251,3 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-
