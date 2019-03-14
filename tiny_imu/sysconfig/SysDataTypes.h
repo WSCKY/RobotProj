@@ -8,7 +8,7 @@
 #ifndef SYSCONFIG_SYSDATATYPES_H_
 #define SYSCONFIG_SYSDATATYPES_H_
 
-#include "ComTypes.h"
+#include "kyLinkMacros.h"
 
 __PACK_BEGIN typedef struct {
 	int16_t accX, accY, accZ;

@@ -4,6 +4,9 @@
 #include "kyLink.h"
 #include "AttEst.h"
 
+#include "usbd_usr.h"
+#include "usbd_cdc_vcp.h"
+
 #if FREERTOS_ENABLED
 
 //#include "ComPort.h"

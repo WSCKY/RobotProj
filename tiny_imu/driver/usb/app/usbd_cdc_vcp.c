@@ -224,7 +224,7 @@ void USB_CDC_SendCharFast(uint8_t c)
 //	}
 //}
 
-void USB_CDC_SendBufferFast(uint8_t *pBuffer, uint8_t Length)
+void USB_CDC_SendBufferFast(uint8_t *pBuffer, uint32_t Length)
 {
   do {
     if(APP_Rx_ptr_in + Length <= APP_RX_DATA_SIZE) {

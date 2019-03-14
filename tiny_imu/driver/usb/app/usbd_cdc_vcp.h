@@ -51,7 +51,7 @@
 //uint16_t USB_CDC_SendChar(uint8_t c);
 //void USB_CDC_SendBuffer(uint8_t *Buffer, uint8_t Length);
 void USB_CDC_SendCharFast(uint8_t c);
-void USB_CDC_SendBufferFast(uint8_t *pBuffer, uint8_t Length);
+void USB_CDC_SendBufferFast(uint8_t *pBuffer, uint32_t Length);
 
 #endif /* __USBD_CDC_VCP_H */
 

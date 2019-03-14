@@ -27,6 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_usr.h"
+#include "kyLink.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -41,7 +42,7 @@ USBD_Usr_cb_TypeDef USR_cb =
   USBD_NONE_cb,
 };
 
-__IO uint32_t USB_EnableFlag = 0;
+extern KYLINK_CORE_HANDLE CDC_PortHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -77,7 +78,7 @@ void USBD_USR_DeviceReset(uint8_t speed )
 */
 void USBD_USR_DeviceConfigured (void)
 {
-  USB_EnableFlag = 1;
+	kyLinkTxEnable(&CDC_PortHandle);
 }
 
 /**
@@ -87,7 +88,7 @@ void USBD_USR_DeviceConfigured (void)
   */
 void USBD_USR_DeviceSuspended(void)
 {
-  USB_EnableFlag = 0;
+	kyLinkTxDisable(&CDC_PortHandle);
 }
 
 
@@ -100,13 +101,5 @@ void USBD_USR_DeviceSuspended(void)
 //{
 //}
 
-/**
-* @brief  Check USBD Status.
-* @param  None
-* @retval Status
-*/
-uint32_t USBD_isEnabled(void) {
-	return USB_EnableFlag;
-}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
