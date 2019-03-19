@@ -75,4 +75,16 @@ __PACK_BEGIN typedef struct {
 	uint32_t FileCRC;
 } __PACK_END FWInfoDef;
 
+__PACK_BEGIN typedef enum {
+	CALIB_MODE_ACC = 0,
+	CALIB_MODE_MAG = 1,
+
+	CALIB_MODE_TEST = 8,
+} __PACK_END UpperCalibMode;
+
+__PACK_BEGIN typedef struct {
+	BooleanState enable;
+	UpperCalibMode Mode;
+} __PACK_END UpperCalibCmdDef;
+
 #endif /* SYSCONFIG_SYSDATATYPES_H_ */

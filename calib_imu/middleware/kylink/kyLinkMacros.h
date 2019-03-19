@@ -9,7 +9,6 @@
 #define MIDDLEWARE_KYLINK_KYLINKMACROS_H_
 
 #include <stdint.h>
-#include <sys/_stdint.h>
 
 /* __packed keyword used to decrease the data type alignment to 1-byte */
 #if defined (__CC_ARM)         /* ARM Compiler */

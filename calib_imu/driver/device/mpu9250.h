@@ -44,6 +44,7 @@ uint8_t mpu_push_new(IMU_RAW *pRaw);
 uint8_t mpu_pull_new(IMU_RAW *pRaw);
 #endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
+IMU_RAW mpu_raw_get(void);
 void mpu_raw2unit(IMU_RAW *raw, IMU_UNIT *unit);
 void mpu_set_gyr_off(int16_t x, int16_t y, int16_t z);
 

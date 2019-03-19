@@ -21,26 +21,26 @@
 /*
  * apply deadband function.
  */
-//float apply_deadband(float value, float deadband)
-//{
-//	if(fabs(value) <= deadband) {value = 0;}
-//
-//	if(value > deadband) {value -= deadband;}
-//	if(value < -deadband) {value += deadband;}
-//
-//	return value;
-//}
-//
-///*
-// * step change function.
-// */
-//void step_change(float *in, float target, float step, float deadBand)
-//{
-//	if(fabsf(*in - target) <= deadBand) {*in = target; return;}
-//
-//	if(*in > target) {*in -= fabsf(step); return;}
-//	if(*in < target) {*in += fabsf(step); return;}
-//}
+float apply_deadband(float value, float deadband)
+{
+	if(ABS(value) <= deadband) {value = 0;}
+
+	if(value > deadband) {value -= deadband;}
+	if(value < -deadband) {value += deadband;}
+
+	return value;
+}
+
+/*
+ * step change function.
+ */
+void step_change(float *in, float target, float step, float deadBand)
+{
+	if(ABS(*in - target) <= deadBand) {*in = target; return;}
+
+	if(*in > target) {*in -= ABS(step); return;}
+	if(*in < target) {*in += ABS(step); return;}
+}
 
 /*
  * CRC8 table.
@@ -80,6 +80,18 @@
 //
 //	return (ucCRC8);
 //}
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+static float fast_inverse_sqrt(float x) {
+	float half = 0.5f * x;
+	int i = *((int *)&x);
+	i = 0x5f3759df - (i >> 1);
+	x = *((float *)&i);
+	x = x * (1.5f - (half * x * x));
+	return x;
+}
+#pragma GCC pop_options
 
 void fusionQ_6dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, float dt)
 {
@@ -122,7 +134,7 @@ void fusionQ_6dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, f
 	if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f)))
 	{
 		// Normalise accelerometer measurement
-		recipNorm = 1.0f/sqrtf(ax * ax + ay * ay + az * az);
+		recipNorm = fast_inverse_sqrt(ax * ax + ay * ay + az * az);//1.0f/sqrtf(ax * ax + ay * ay + az * az);
 		ax *= recipNorm;
 		ay *= recipNorm;
 		az *= recipNorm;
@@ -165,7 +177,7 @@ void fusionQ_6dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, f
 	qz = qz_last*(1.0f-delta2*0.125f) + (qw_last*gz + qx_last*gy - qy_last*gx)*0.5f * dt;
 
 	// Normalise quaternion
-	recipNorm = 1.0f/sqrtf(qw * qw + qx * qx + qy * qy + qz * qz);
+	recipNorm = fast_inverse_sqrt(qw * qw + qx * qx + qy * qy + qz * qz);//1.0f/sqrtf(qw * qw + qx * qx + qy * qy + qz * qz);
 	qw *= recipNorm;
 	qx *= recipNorm;
 	qy *= recipNorm;

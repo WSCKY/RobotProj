@@ -16,6 +16,7 @@ static float prop_gain_kp = 3.0f, intg_gain_ki = 0.0f;
 
 static GyrRawDef GyrOffset;
 static uint8_t gyr_calib_flag = 0; /* imu calibrated flag */
+static uint8_t upper_calib_flag = 0; /* calibrate imu by monitor */
 static void calib_loop(IMU_RAW *raw);
 
 IMU_UNIT imu_unit;
@@ -23,7 +24,7 @@ uint32_t lastTimeStamp = 0;
 void mpu_update_hook(IMU_RAW *pRaw)
 {
 	calib_loop(pRaw);
-	if(gyr_calib_flag != 0) {
+	if(gyr_calib_flag != 0 && upper_calib_flag == 0) {
 		pRaw->gyrX -= GyrOffset.gyrX;
 		pRaw->gyrY -= GyrOffset.gyrY;
 		pRaw->gyrZ -= GyrOffset.gyrZ;
@@ -48,6 +49,24 @@ Quat_T get_est_q(void)
 IMU_UNIT get_imu_unit(void)
 {
 	return imu_unit;
+}
+
+inline void upper_calib_enable(void)
+{
+	upper_calib_flag = 1;
+	// reset the estimator
+	lastTimeStamp = 0;
+	AttQ.qw = 1; AttQ.qx = 0; AttQ.qy = 0; AttQ.qz = 0;
+}
+
+inline void upper_calib_disabale(void)
+{
+	upper_calib_flag = 0;
+}
+
+inline uint8_t upper_calib_state(void)
+{
+	return upper_calib_flag;
 }
 
 #define CALIB_BUFF_SIZE                          (100)

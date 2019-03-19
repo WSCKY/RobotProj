@@ -141,6 +141,11 @@ void mpu_raw2unit(IMU_RAW *raw, IMU_UNIT *unit)
   unit->TimeStamp = raw->TimeStamp;
 }
 
+IMU_RAW mpu_raw_get(void)
+{
+	return mpu_raw_data;
+}
+
 static void IMU_INT_Callback(void)
 {
   uint32_t TS;

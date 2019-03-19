@@ -15,4 +15,8 @@
 Quat_T get_est_q(void);
 IMU_UNIT get_imu_unit(void);
 
+void upper_calib_enable(void);
+void upper_calib_disabale(void);
+uint8_t upper_calib_state(void);
+
 #endif /* __ATTEST_H */
