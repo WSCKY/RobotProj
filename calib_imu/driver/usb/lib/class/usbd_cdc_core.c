@@ -573,7 +573,7 @@ static void Handle_USBAsynchXfer (void *pdev)
       APP_Rx_ptr_out += APP_Rx_length;
       APP_Rx_length = 0;
       if (USB_Tx_length == CDC_DATA_IN_PACKET_SIZE) last_packet = 1; //IBA
-      if (APP_Rx_ptr_in == 64) APP_Rx_ptr_in=0;
+//      if (APP_Rx_ptr_in == 64) APP_Rx_ptr_in=0;
     }
     USB_Tx_State = 1; 
     
