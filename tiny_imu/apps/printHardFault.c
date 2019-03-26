@@ -64,6 +64,7 @@ void HardFault_Handler(void)
         "bx r1\t\n"
         "1:mrs r0,msp\t\n"
         "ldr r1,=hard_fault_handler_c\t\n"
+    	"bx r1\t\n"
         : /* no output */
         : /* no input */
         : "r0" /* clobber */
