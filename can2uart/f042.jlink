@@ -1,0 +1,8 @@
+Device STM32F042G6
+IF     SWD
+Speed  400KHz
+loadbin Output/UART2CAN.bin, 0x08000000
+rx 200
+g
+qc
+
