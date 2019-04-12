@@ -26,7 +26,7 @@ void StartThread(void const * arg)
 	USBD_Init(&USB_Device_dev, &USR_desc, &USBD_CDC_cb, &USR_cb);
 	_delay_ms(50);
 
-	sEE_Init();
+//	sEE_Init();
 	mpu9250_init();
 	_delay_ms(10);
 	com_task_init();
