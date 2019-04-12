@@ -3,8 +3,8 @@
 
 /* Protocol Version */
 #define VER_MAJOR                      (1) /* Major */
-#define VER_MINOR                      (0) /* Minor */
-#define VER_FIXNUM                     (2) /* Fix Number */
+#define VER_MINOR                      (8) /* Minor */
+#define VER_FIXNUM                     (0) /* Fix Number */
 
 #define VER_MAJOR_Pos                  (12)
 #define VER_MAJOR_Msk                  (0xF000)

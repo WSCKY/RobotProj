@@ -53,7 +53,11 @@ __PACK_BEGIN typedef union {
 #endif
 } __PACK_END PackTypeDataDef;
 
-#define MAIN_DATA_CACHE                          sizeof(PackTypeDataDef)
+#if defined(KYLINK_PAYLOAD_SIZE)
+  #define MAIN_DATA_CACHE                          KYLINK_PAYLOAD_SIZE
+#else
+  #define MAIN_DATA_CACHE                          sizeof(PackTypeDataDef)
+#endif /* defined(KYLINK_PAYLOAD_SIZE) */
 
 __PACK_BEGIN typedef union {
 	uint8_t RawData[MAIN_DATA_CACHE];
