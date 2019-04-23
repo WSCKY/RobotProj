@@ -112,6 +112,13 @@ SECTIONS
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+  .uart2_cache (NOLOAD) :
+  {
+    . = ALIGN(4);
+    UART2_RX_CACHE = .;
+    . = . + UART2_RX_CACHE_SIZE;
+  } >SYS_MAIN_MEMORY
+
   .cdc_rx_buff (NOLOAD) :
   {
     . = ALIGN(4);

@@ -19,7 +19,8 @@ void COM_Thread(void const *argument)
   UNUSED_PARAMETER(argument);
 
   /* hardware initialize. */
-  ComPort_Init(kyLinkByteHandler);
+  ComPort_Init();
+  kyLinkByteHandler(0); // warning ...
   USB_CDC_CallbackRegistry(kyLinkBytesHandler); /* register callback handler function */
   USBD_Init(&USB_OTG_dev, USB_OTG_FS_CORE_ID, &USR_desc, &USBD_CDC_cb, &USR_cb);
 
