@@ -112,6 +112,13 @@ SECTIONS
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+  .cdc_rx_buff (NOLOAD) :
+  {
+    . = ALIGN(4);
+    APP_Rx_Buffer = .;
+    . = . + APP_RX_DATA_SIZE;
+  } >SYS_MAIN_MEMORY
+
   /* Initialized data sections into RAM memory */
   .data : 
   {

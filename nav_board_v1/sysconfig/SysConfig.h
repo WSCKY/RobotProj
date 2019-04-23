@@ -4,6 +4,8 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 
+#include "boardconfig.h"
+
 #include "cmsis_os.h"
 #include "SysDataTypes.h"
 #include "PriorityConfig.h"
