@@ -27,7 +27,7 @@ static void reset_decoder(void);
 static UBX_ERROR ubx_if_config_flag = UBX_UNCONFIG;
 static UBX_ERROR ubx_if_config(UBXStrcutureDef *pMsg);
 static void ubx_if_config_packet_prepare(UBXStrcutureDef *pMsg);
-static uint8_t ubx_if_config_msg[UBX_IF_CONFIG_MSG_LEN] = UBX_IF_CONFIG_MSG;
+static const uint8_t ubx_if_config_msg[UBX_IF_CONFIG_MSG_LEN] = UBX_IF_CONFIG_MSG;
 
 /* data rate configuration: measure rate(10); navigation rate(1); time system measurements aligned(0:UTC time); */
 static UBX_ERROR ubx_rate_config_flag = UBX_UNCONFIG;
@@ -40,7 +40,7 @@ static UBX_ERROR ubx_rate_config(UBXStrcutureDef *pMsg, uint8_t measRate, uint8_
 static UBX_ERROR ubx_nav_eng_config_flag = UBX_UNCONFIG;
 static UBX_ERROR ubx_nav_eng_config(UBXStrcutureDef *pMsg, DYNC_PLAT_MODEL dynModel);
 static void ubx_nav_eng_config_packet_prepare(UBXStrcutureDef *pMsg, DYNC_PLAT_MODEL dynModel);
-static uint8_t ubx_nav_eng_config_msg[UBX_NAV_ENG_CONFIG_MSG_LEN] = UBX_NAV_ENG_CONFIG_MSG;
+static const uint8_t ubx_nav_eng_config_msg[UBX_NAV_ENG_CONFIG_MSG_LEN] = UBX_NAV_ENG_CONFIG_MSG;
 
 /* meassage rate configuration: msg class(0x01); msg id(0x07); msg rate(10) */
 static UBX_ERROR ubx_msg_config_flag = UBX_UNCONFIG;
