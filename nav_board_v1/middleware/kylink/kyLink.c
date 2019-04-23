@@ -1,53 +1,66 @@
+/**
+ * @file    kyLink.c
+ * @author  kyChu
+ * @date    2017/08/20
+ * @version V1.2.0
+ * @brief   kylink protocol in ANSI C
+ */
 #include "kyLink.h"
-
-#if FREERTOS_ENABLED
-QueueHandle_t lnk_recv_q = NULL;
-static void lnk_queue_create(void);
-#else
-static uint8_t GotDataFlag = 0;
-static CommPackageDef rxPacket = {0};
-#endif /* FREERTOS_ENABLED */
 
 /* function prototypes */
 static uint16_t do_crc_table(uint8_t *ptr, uint32_t len);
 
-void kyLink_Init(void)
+void kyLinkInit(KYLINK_CORE_HANDLE *pHandle, kyLinkPortTxBytesFunc pTx)
 {
-#if FREERTOS_ENABLED
-  lnk_queue_create();
-#else
-  GotDataFlag = 0;
-#endif /* FREERTOS_ENABLED */
+	pHandle->port_tx = pTx;
+	pHandle->port_enable = kyFALSE;
+	pHandle->decoder.rx_counter = 0;
+	pHandle->decoder.update_flag = 0;
+	pHandle->decoder._decode_state = DECODE_STATE_UNSYNCED;
 }
 
-#if FREERTOS_ENABLED
-static void lnk_queue_create(void)
+BooleanState kyLinkCheckUpdate(KYLINK_CORE_HANDLE *pHandle)
 {
-  lnk_recv_q = xQueueCreate(MSG_QUEUE_DEPTH, sizeof(CommPackageDef));
-}
-#else
-uint8_t GotNewData(void)
-{
-	if(GotDataFlag == 1) {
-		GotDataFlag = 0;
-		return 1;
+	if(pHandle->decoder.update_flag == kyTRUE) {
+		pHandle->decoder.update_flag = kyFALSE;
+		return kyTRUE;
 	}
-	return 0;
+	return kyFALSE;
 }
 
-CommPackageDef* GetRxPacket(void)
+void kyLinkInitPackage(kyLinkPackageDef *pPack)
 {
-	return &rxPacket;
+  pPack->FormatData.stx1 = kySTX1;
+  pPack->FormatData.stx2 = kySTX2;
+  pPack->FormatData.dev_id = HARD_DEV_ID;
+  pPack->FormatData.msg_id = TYPE_LINK_HEARTBEAT;
+  pPack->FormatData.length = 1;
+  pPack->FormatData.PacketData.TypeData.Heartbeat = 0;
+  pPack->FormatData.crc16 = 0;
 }
-#endif /* FREERTOS_ENABLED */
+
+void kyLinkTxEnable(KYLINK_CORE_HANDLE *pHandle)
+{
+	pHandle->port_enable = kyTRUE;
+}
+
+void kyLinkTxDisable(KYLINK_CORE_HANDLE *pHandle)
+{
+	pHandle->port_enable = kyFALSE;
+}
+
+kyLinkPackageDef* GetRxPackage(KYLINK_CORE_HANDLE *pHandle)
+{
+	return &pHandle->decoder._rx_packet_copy;
+}
 
 static uint16_t do_crc_table(uint8_t *ptr, uint32_t len)
 {
-	unsigned short int crc;
-	uint8_t H8;
+  unsigned short int crc;
+  uint8_t H8;
 
   crc = 0;
-	while(len -- != 0) {
+  while(len -- != 0) {
     H8 = (unsigned short)crc >> 8;
     crc <<= 8;
     crc ^= crcTab16[H8 ^ *ptr];
@@ -56,85 +69,82 @@ static uint16_t do_crc_table(uint8_t *ptr, uint32_t len)
   return(crc);
 }
 
-void SendTxPacket(CommPackageDef* pPacket)
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+void SendTxPacket(KYLINK_CORE_HANDLE *pHandle, kyLinkPackageDef* pPacket)
 {
-	pPacket->Packet.crc16 = do_crc_table(&(pPacket->RawData[2]), pPacket->Packet.length + 4);
-  *(uint16_t *)&(pPacket->Packet.PacketData.pData[pPacket->Packet.length]) = pPacket->Packet.crc16;
-  if(COM_IF_TX_CHECK())
-    COM_IF_TX_BYTES(pPacket->RawData, pPacket->Packet.length + 8);
+  pPacket->FormatData.crc16 = do_crc_table(&(pPacket->RawData[2]), pPacket->FormatData.length + 4);
+  /* NOTE: DO NOT MAKE OPTIMIZATION */
+  *(uint16_t *)&(pPacket->FormatData.PacketData.RawData[pPacket->FormatData.length]) = pPacket->FormatData.crc16;
+  if(pHandle->port_enable)
+	  pHandle->port_tx(pPacket->RawData, pPacket->FormatData.length + 8);
 }
+#pragma GCC pop_options
 
-/* decoder required. */
-static uint8_t _rx_length = 0;
-static CommPackageDef _rx_packet = {0};
-static DECODE_STATE _decode_state = DECODE_STATE_UNSYNCED;
 /*
   decode process.
 */
-void kyLink_DecodeProcess(uint8_t data)
+void kylink_decode(KYLINK_CORE_HANDLE *pHandle, uint8_t data)
 {
-#if FREERTOS_ENABLED
-  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-#endif /* FREERTOS_ENABLED */
-	switch(_decode_state) {
-		case DECODE_STATE_UNSYNCED:
-			if(data == kySTX1) {
-				_rx_packet.Packet.stx1 = data;
-				_decode_state = DECODE_STATE_GOT_STX1;
-			}
-		break;
-		case DECODE_STATE_GOT_STX1:
-			if(data == kySTX2) {
-				_rx_packet.Packet.stx2 = data;
-				_decode_state = DECODE_STATE_GOT_STX2;
-			} else {
-				_decode_state = DECODE_STATE_UNSYNCED;
-      }
-		break;
-    case DECODE_STATE_GOT_STX2:
-      _rx_packet.Packet.dev_id = data;
-      _decode_state = DECODE_STATE_GOT_DEVID;
-    break;
-    case DECODE_STATE_GOT_DEVID:
-      _rx_packet.Packet.msg_id = data;
-      _decode_state = DECODE_STATE_GOT_MSGID;
-    break;
-    case DECODE_STATE_GOT_MSGID:
-      _rx_packet.Packet.length = data;
-      _decode_state = DECODE_STATE_GOT_LEN_L;
-    break;
-    case DECODE_STATE_GOT_LEN_L:
-      _rx_packet.Packet.length = ((uint16_t)data << 8) | _rx_packet.Packet.length;
-      if(_rx_packet.Packet.length <= MAIN_DATA_CACHE) {
-        _rx_length = 0;
-        _decode_state = DECODE_STATE_GOT_LEN_H;
-      } else {
-        _decode_state = DECODE_STATE_UNSYNCED;
-      }
-    break;
-		case DECODE_STATE_GOT_LEN_H:
-			_rx_packet.Packet.PacketData.pData[_rx_length ++] = data;
-			if(_rx_length == _rx_packet.Packet.length)
-				_decode_state = DECODE_STATE_GOT_DATA;
-		break;
-		case DECODE_STATE_GOT_DATA:
-			_rx_packet.Packet.crc16 = data;
-      _decode_state = DECODE_STATE_GOT_CRC_L;
-    break;
-    case DECODE_STATE_GOT_CRC_L:
-      _rx_packet.Packet.crc16 = (data << 8) | _rx_packet.Packet.crc16; /* got the crc16. */
-			if(do_crc_table(&(_rx_packet.RawData[2]), _rx_length + 4) == _rx_packet.Packet.crc16) {
-#if FREERTOS_ENABLED
-        xQueueSendFromISR(lnk_recv_q, &_rx_packet, &xHigherPriorityTaskWoken);
-#else
-        rxPacket = _rx_packet;
-        GotDataFlag = 1;
-#endif /* FREERTOS_ENABLED */
-			} else {}
-			_decode_state = DECODE_STATE_UNSYNCED;
-		break;
-		default:
-			_decode_state = DECODE_STATE_UNSYNCED;
-		break;
-	}
+  switch(pHandle->decoder._decode_state) {
+	case DECODE_STATE_UNSYNCED:
+	  if(data == kySTX1) {
+        pHandle->decoder._rx_packet.FormatData.stx1 = data;
+        pHandle->decoder._decode_state = DECODE_STATE_GOT_STX1;
+	  }
+	break;
+	case DECODE_STATE_GOT_STX1:
+	  if(data == kySTX2) {
+        pHandle->decoder._rx_packet.FormatData.stx2 = data;
+        pHandle->decoder._decode_state = DECODE_STATE_GOT_STX2;
+	  } else {
+        pHandle->decoder._decode_state = DECODE_STATE_UNSYNCED;
+	  }
+	break;
+	case DECODE_STATE_GOT_STX2:
+      pHandle->decoder._rx_packet.FormatData.dev_id = data;
+      pHandle->decoder._decode_state = DECODE_STATE_GOT_DEVID;
+	break;
+	case DECODE_STATE_GOT_DEVID:
+      pHandle->decoder._rx_packet.FormatData.msg_id = data;
+      pHandle->decoder._decode_state = DECODE_STATE_GOT_MSGID;
+	break;
+	case DECODE_STATE_GOT_MSGID:
+      pHandle->decoder._rx_packet.FormatData.length = data;
+      pHandle->decoder._decode_state = DECODE_STATE_GOT_LEN_L;
+	break;
+	case DECODE_STATE_GOT_LEN_L:
+      pHandle->decoder._rx_packet.FormatData.length = ((uint16_t)data << 8) | pHandle->decoder._rx_packet.FormatData.length;
+	  if(pHandle->decoder._rx_packet.FormatData.length <= MAIN_DATA_CACHE) {
+        pHandle->decoder.rx_counter = 0;
+		pHandle->decoder._decode_state = DECODE_STATE_GOT_LEN_H;
+	  } else {
+        pHandle->decoder._decode_state = DECODE_STATE_UNSYNCED;
+	  }
+	break;
+	case DECODE_STATE_GOT_LEN_H:
+      pHandle->decoder._rx_packet.FormatData.PacketData.RawData[pHandle->decoder.rx_counter ++] = data;
+	  if(pHandle->decoder.rx_counter == pHandle->decoder._rx_packet.FormatData.length)
+        pHandle->decoder._decode_state = DECODE_STATE_GOT_DATA;
+	break;
+	case DECODE_STATE_GOT_DATA:
+      pHandle->decoder._rx_packet.FormatData.crc16 = data;
+      pHandle->decoder._decode_state = DECODE_STATE_GOT_CRC_L;
+	break;
+	case DECODE_STATE_GOT_CRC_L:
+      pHandle->decoder._rx_packet.FormatData.crc16 = (data << 8) | pHandle->decoder._rx_packet.FormatData.crc16; /* got the crc16. */
+	  if(do_crc_table(&(pHandle->decoder._rx_packet.RawData[2]), pHandle->decoder.rx_counter + 4) == pHandle->decoder._rx_packet.FormatData.crc16) {
+        pHandle->decoder._rx_packet_copy = pHandle->decoder._rx_packet;
+        pHandle->decoder.update_flag = 1;
+	  } else {}
+      pHandle->decoder._decode_state = DECODE_STATE_UNSYNCED;
+	break;
+	default:
+      pHandle->decoder._decode_state = DECODE_STATE_UNSYNCED;
+	break;
+  }
 }
+
+/**
+ * @ End of file.
+ */
