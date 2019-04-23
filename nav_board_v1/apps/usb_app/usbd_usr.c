@@ -32,6 +32,9 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern void USBD_USR_DeviceConfigured(void);
+extern void USBD_USR_DeviceSuspended(void);
+
 USBD_Usr_cb_TypeDef USR_cb =
 {
   USBD_USR_Init,
@@ -40,8 +43,6 @@ USBD_Usr_cb_TypeDef USR_cb =
   USBD_USR_DeviceSuspended,
   USBD_USR_DeviceResumed,  
 };
-
-static uint8_t USB_EnableFlag = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -71,20 +72,20 @@ void USBD_USR_DeviceReset(uint8_t speed )
   * @param  None
   * @retval Status
 */
-void USBD_USR_DeviceConfigured (void)
-{
-  USB_EnableFlag = 1;
-}
+//void USBD_USR_DeviceConfigured (void)
+//{
+//
+//}
 
 /**
   * @brief  Device suspend Event
   * @param  None
   * @retval None
   */
-void USBD_USR_DeviceSuspended(void)
-{
-  USB_EnableFlag = 0;
-}
+//void USBD_USR_DeviceSuspended(void)
+//{
+//
+//}
 
 
 /**
@@ -95,12 +96,5 @@ void USBD_USR_DeviceSuspended(void)
 void USBD_USR_DeviceResumed(void)
 {
 }
-
-/**
-* @brief  Check USBD Status.
-* @param  None
-* @retval Status
-*/
-inline uint8_t USBD_isEnabled(void) { return USB_EnableFlag; }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

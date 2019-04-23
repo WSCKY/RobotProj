@@ -93,8 +93,6 @@ void     USBD_USR_FS_DeviceResumed(void);
 void     USBD_USR_FS_DeviceConnected(void);
 void     USBD_USR_FS_DeviceDisconnected(void);
 
-uint8_t USBD_isEnabled(void);
-
 /**
   * @}
   */ 
