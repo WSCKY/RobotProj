@@ -7,7 +7,7 @@
 ProjName = navigation
 
 # TOP path
-TopPath = $(shell pwd)
+TopPath = .
 # BUILD path
 BuildPath = $(TopPath)/Build
 # Output path
