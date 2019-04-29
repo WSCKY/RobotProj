@@ -3,12 +3,7 @@
 
 #include "SysConfig.h"
 
-#include "LED.h"
-#include "Button.h"
-#include "Heater.h"
-#include "PwrCtrl.h"
-#include "MPU9250.h"
-#include "AT24CXX.h"
+#include "bsp.h"
 
 #include "imu_task.h"
 #include "com_task.h"

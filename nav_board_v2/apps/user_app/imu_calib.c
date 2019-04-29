@@ -36,7 +36,7 @@ void CalibTask(void const *argument)
         calib_raw.accX = raw.accX;
         calib_raw.accY = raw.accY;
         calib_raw.accZ = raw.accZ;
-        mpu_raw2unit(&calib_raw, &unit);
+        imu_raw2unit(&calib_raw, &unit);
         xQueueSend(q_mpu_unit, (void *)&unit, 5);
       }
 

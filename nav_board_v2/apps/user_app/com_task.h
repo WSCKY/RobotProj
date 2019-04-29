@@ -3,7 +3,7 @@
 
 #include "kyLink.h"
 
-#include "ComPort.h"
+#include "com_port.h"
 
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"

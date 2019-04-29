@@ -1,7 +1,7 @@
 #ifndef __IMU_TASK_H
 #define __IMU_TASK_H
 
-#include "MPU9250.h"
+#include "bsp.h"
 
 #include "imu_calib.h"
 #include "AttitudeEst.h"

@@ -8,16 +8,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-./apps/main.c \
-./apps/stm32f4xx_it.c
+./apps/main.c
 
 OBJS += \
-$(BuildPath)/apps/main.o \
-$(BuildPath)/apps/stm32f4xx_it.o
+$(BuildPath)/apps/main.o
 
 C_DEPS += \
-$(BuildPath)/apps/main.d \
-$(BuildPath)/apps/stm32f4xx_it.d 
+$(BuildPath)/apps/main.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 
