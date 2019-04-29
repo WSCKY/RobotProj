@@ -1,4 +1,4 @@
-#include "ComPort.h"
+#include "com_port.h"
 
 static uint8_t _com_port_init_flag = 0;
 #if COM_PORT_DMA_ENABLE
@@ -14,7 +14,7 @@ static void ComPort_pushBytes(void);
 static PortRecvByteCallback pRecvCall = NULL;
 #endif /* COM_PORT_DMA_ENABLE */
 
-void ComPort_Init(
+void com_port_init(
 #if COM_PORT_DMA_ENABLE
 		void
 #else
@@ -23,7 +23,7 @@ void ComPort_Init(
 		)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
+//	NVIC_InitTypeDef NVIC_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 
 	if(_com_port_init_flag != 0) return; // already initialized.
@@ -53,11 +53,11 @@ void ComPort_Init(
 
 /* NVIC configuration --------------------------------------------------------*/
 	/* Enable the USARTx Interrupt */
-	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_RX; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
+//	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_RX; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitStructure);
 
 #if COM_PORT_DMA_ENABLE
 	dma_config();
@@ -97,7 +97,7 @@ void ComPort_Init(
 #if COM_PORT_DMA_ENABLE
 static void dma_config(void)
 {
-	NVIC_InitTypeDef NVIC_InitStructure;
+//	NVIC_InitTypeDef NVIC_InitStructure;
 	/* Enable the DMA clock */
 	COM_PORT_DMAx_CLK_INIT(COM_PORT_DMAx_CLK, ENABLE);
 
@@ -108,11 +108,11 @@ static void dma_config(void)
 	DMA_Cmd(COM_PORT_RX_DMA_STREAM, DISABLE);
 
 	/* --------------- RX --------------- */
-	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_DMA_RX_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_RX_DMA; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init( &NVIC_InitStructure );
+//	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_DMA_RX_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_RX_DMA; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init( &NVIC_InitStructure );
 
 	/* Configure RX DMA Initialization Structure */
 	DMA_InitStructure.DMA_Channel = COM_PORT_RX_DMA_CHANNEL;
@@ -136,11 +136,11 @@ static void dma_config(void)
 	DMA_ITConfig(COM_PORT_RX_DMA_STREAM, DMA_IT_TC, ENABLE);
 
 	/* --------------- TX --------------- */
-	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_DMA_TX_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_TX_DMA; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init( &NVIC_InitStructure );
+//	NVIC_InitStructure.NVIC_IRQChannel = COM_PORT_DMA_TX_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = INT_PRIORITY_COM_PORT_TX_DMA; /* must >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, when use RTOS */
+//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init( &NVIC_InitStructure );
 
 	/* Configure TX DMA Initialization Structure */
 	DMA_InitStructure.DMA_Channel = COM_PORT_TX_DMA_CHANNEL;
@@ -273,7 +273,8 @@ void COM_PORT_IRQHandler(void)
 /*
  * this function handles UART DMA TX Interrupt.
  */
-void COM_PORT_DMA_TX_IRQHandler(void)
+void com_port_dma_tx_isr(void)
+//void COM_PORT_DMA_TX_IRQHandler(void)
 {
 	/* check if Streamx transfer complete flag is set. */
 	if(DMA_GetITStatus(COM_PORT_TX_DMA_STREAM, COM_PORT_TX_DMA_IT_TCIF)) {
@@ -286,7 +287,8 @@ void COM_PORT_DMA_TX_IRQHandler(void)
 /*
  * this function handles UART DMA RX Interrupt.
  */
-void COM_PORT_DMA_RX_IRQHandler(void)
+void com_port_dma_rx_isr(void)
+//void COM_PORT_DMA_RX_IRQHandler(void)
 {
 	/* check if Streamx half transfer flag is set. */
 	if(DMA_GetITStatus(COM_PORT_RX_DMA_STREAM, COM_PORT_RX_DMA_IT_HTIF)) {

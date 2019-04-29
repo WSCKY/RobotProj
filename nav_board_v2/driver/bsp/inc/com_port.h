@@ -49,13 +49,13 @@
 #define COM_PORT_RX_DMA_IT_TCIF        DMA_IT_TCIF5
 #define COM_PORT_RX_DMA_IT_HTIF        DMA_IT_HTIF5
 
-#define COM_PORT_DMA_TX_IRQn           DMA1_Stream6_IRQn
-#define COM_PORT_DMA_RX_IRQn           DMA1_Stream5_IRQn
-#define COM_PORT_DMA_TX_IRQHandler     DMA1_Stream6_IRQHandler
-#define COM_PORT_DMA_RX_IRQHandler     DMA1_Stream5_IRQHandler
+//#define COM_PORT_DMA_TX_IRQn           DMA1_Stream6_IRQn
+//#define COM_PORT_DMA_RX_IRQn           DMA1_Stream5_IRQn
+//#define COM_PORT_DMA_TX_IRQHandler     DMA1_Stream6_IRQHandler
+//#define COM_PORT_DMA_RX_IRQHandler     DMA1_Stream5_IRQHandler
 #endif /* COM_PORT_DMA_ENABLE */
 
-void ComPort_Init(
+void com_port_init(
 #if COM_PORT_DMA_ENABLE
 		void
 #else
@@ -74,4 +74,7 @@ uint32_t ComPort_pullBytes(uint8_t *p, uint32_t l);
 #define ComPort_TxBytesDMA ComPort_TxBytes
 void ComPort_set_callback(PortRecvByteCallback p);
 #endif /* COM_PORT_DMA_ENABLE */
+
+void com_port_dma_tx_isr(void);
+void com_port_dma_rx_isr(void);
 #endif /* __COMPORT_H */
