@@ -7,77 +7,11 @@
   * @brief   This file is responsible to offer board support package and is 
   *          configurable by user.
   ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                      <http://www.st.com/SLA0044>
-  *
-  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------ */
 #include "usb_bsp.h"
 #include "SysConfig.h"
-
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-* @{
-*/
-
-/** @defgroup USB_BSP
-* @brief This file is responsible to offer board support package
-* @{
-*/
-
-/** @defgroup USB_BSP_Private_Defines
-* @{
-*/
-/**
-* @}
-*/
-
-
-/** @defgroup USB_BSP_Private_TypesDefinitions
-* @{
-*/
-/**
-* @}
-*/
-
-
-
-
-
-/** @defgroup USB_BSP_Private_Macros
-* @{
-*/
-/**
-* @}
-*/
-
-/** @defgroup USBH_BSP_Private_Variables
-* @{
-*/
-
-/**
-* @}
-*/
-
-/** @defgroup USBH_BSP_Private_FunctionPrototypes
-* @{
-*/
-/**
-* @}
-*/
-
-/** @defgroup USB_BSP_Private_Functions
-* @{
-*/
-
 
 /**
 * @brief  USB_OTG_BSP_Init
@@ -144,7 +78,6 @@ void USB_OTG_BSP_uDelay(const uint32_t usec)
   _delay_us(usec);
 }
 
-
 /**
 * @brief  USB_OTG_BSP_mDelay
 *          This function provides delay time in milli sec
@@ -156,16 +89,4 @@ void USB_OTG_BSP_mDelay(const uint32_t msec)
   _delay_ms(msec);
 }
 
-/**
-* @}
-*/
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/******************************** END OF FILE ********************************/
