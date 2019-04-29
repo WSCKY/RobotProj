@@ -8,7 +8,8 @@
 
 #include "cmsis_os.h"
 #include "SysDataTypes.h"
-#include "PriorityConfig.h"
+#include "TaskPriorityConfig.h"
+#include "PeriphPriorityConfig.h"
 /* System Timer clock */
 #include "TimerCounter.h"
 
