@@ -21,11 +21,15 @@ void AttitudeEstTask(void const *argument)
   for(;;) {
     if(xQueueReceive(q_mpu, (void *)&imu_unit, pdMS_TO_TICKS(2)) == pdPASS) {
       if(lastTimeStamp == 0) {
-        lastTimeStamp = imu_unit.TimeStamp;
-        fusionDt = 0.001f;
+        lastTimeStamp = imu_unit.TS;
+        fusionDt = 0.00106f;
       } else {
-        fusionDt = (float)(imu_unit.TimeStamp - lastTimeStamp) / 1000000.0f;
-        lastTimeStamp = imu_unit.TimeStamp;
+        if(imu_unit.TS > lastTimeStamp) {
+          fusionDt = (float)(imu_unit.TS - lastTimeStamp) / 1000000.0f;
+        } else {
+          fusionDt = (float)(imu_unit.TS + 0xFFFFFFFF - lastTimeStamp) / 1000000.0f;
+        }
+        lastTimeStamp = imu_unit.TS;
       }
       fusionQ_6dot(&imu_unit, &AttQ, prop_gain_kp, intg_gain_ki, fusionDt);
       com_msg_update();

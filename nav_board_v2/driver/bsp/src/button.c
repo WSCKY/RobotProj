@@ -42,9 +42,7 @@ void button_init(void)
 
 void button_int_isr(void)
 {
-  if(EXTI_GetITStatus(USER_BUTTON_EXTI_LINE) != RESET) {
+  if(GPIO_ReadInputDataBit(USER_BUTTON_GPIO_PORT, USER_BUTTON_PIN) == Bit_RESET) {
     button_press_callback();
-    /* Clear the EXTI line 0 pending bit */
-    EXTI_ClearITPendingBit(USER_BUTTON_EXTI_LINE);
   }
 }

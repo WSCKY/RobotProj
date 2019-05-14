@@ -9,55 +9,53 @@ typedef void (*PortRecvByteCallback)(uint8_t Data);
 typedef void (*PortRecvBytesCallback)(uint8_t *p, uint32_t l);
 
 __PACK_BEGIN typedef struct {
-	int16_t accX;
-	int16_t accY;
-	int16_t accZ;
-	int16_t temp;
-	int16_t gyrX;
-	int16_t gyrY;
-	int16_t gyrZ;
-  uint32_t TimeStamp;
+  int16_t X;
+  int16_t Y;
+  int16_t Z;
+} __PACK_END _3AxisRaw;
+
+__PACK_BEGIN typedef struct {
+  _3AxisRaw Acc;
+  _3AxisRaw Gyr;
+  _3AxisRaw Mag;
+  uint32_t TS;
 } __PACK_END IMU_RAW;
 
 __PACK_BEGIN typedef struct {
-	int16_t accX;
-	int16_t accY;
-	int16_t accZ;
-} __PACK_END AccRawDef;
+  float X;
+  float Y;
+  float Z;
+} __PACK_END _3AxisUnit;
 
 __PACK_BEGIN typedef struct {
-	int16_t gyrX;
-	int16_t gyrY;
-	int16_t gyrZ;
-} __PACK_END GyrRawDef;
-
-__PACK_BEGIN typedef struct {
-	float accX;
-	float accY;
-	float accZ;
-} __PACK_END AccDataDef;
-
-__PACK_BEGIN typedef struct {
-	float gyrX;
-	float gyrY;
-	float gyrZ;
-} __PACK_END GyrDataDef;
-
-__PACK_BEGIN typedef struct {
-  AccDataDef AccData;
-  float Temperature;
-  GyrDataDef GyrData;
-  uint32_t TimeStamp;
+  _3AxisUnit Acc;
+  _3AxisUnit Gyr;
+  _3AxisUnit Mag;
+  uint32_t TS;
 } __PACK_END IMU_UNIT;
 
 __PACK_BEGIN typedef struct {
   float accX;
-	float accY;
-	float accZ;
+  float accY;
+  float accZ;
   float gyrX;
-	float gyrY;
-	float gyrZ;
-} __PACK_END IMU_INFO_DEF;
+  float gyrY;
+  float gyrZ;
+  uint32_t TS;
+} __PACK_END IMU_6DOF_DEF;
+
+__PACK_BEGIN typedef struct {
+  float accX;
+  float accY;
+  float accZ;
+  float gyrX;
+  float gyrY;
+  float gyrZ;
+  float magX;
+  float magY;
+  float magZ;
+  uint32_t TS;
+} __PACK_END IMU_9DOF_DEF;
 
 __PACK_BEGIN typedef struct {
   float qw;

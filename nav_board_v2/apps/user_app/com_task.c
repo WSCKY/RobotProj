@@ -44,8 +44,8 @@ static void COM_TX_Thread(void const *argument)
   TxPacket.FormatData.stx1 = kySTX1;
   TxPacket.FormatData.stx2 = kySTX2;
   TxPacket.FormatData.dev_id = HARD_DEV_ID;
-  TxPacket.FormatData.msg_id = TYPE_IMU_INFO_Resp;
-  TxPacket.FormatData.length = sizeof(IMU_INFO_DEF);
+  TxPacket.FormatData.msg_id = TYPE_IMU_6DOF_Resp;
+  TxPacket.FormatData.length = sizeof(IMU_6DOF_DEF);
   for(;;) {
     if(xQueueReceiveFromISR(com_msg_q, &msg, &xTaskWokenByReceive) == pdPASS) {
       TxPacket.FormatData.length = msg.len;

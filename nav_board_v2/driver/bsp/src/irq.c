@@ -5,7 +5,7 @@
   * @version V1.0.0
   * @date    Apr 29, 2019
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   */ 
@@ -19,7 +19,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 extern USB_OTG_CORE_HANDLE USB_OTG_dev;
-extern uint32_t USBD_OTG_ISR_Handler(USB_OTG_CORE_HANDLE * pdev);
+//extern uint32_t USBD_OTG_ISR_Handler(USB_OTG_CORE_HANDLE * pdev);
 /* Private functions ---------------------------------------------------------*/
 
 void chip_irq_initialize(void)
@@ -64,15 +64,15 @@ void chip_irq_initialize(void)
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = DMA1_Stream6_IRQn_Priority;
   NVIC_Init(&NVIC_InitStructure);
 
-//  /* Enable DMA2 Stream 3 global Interrupt */
-//  NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream3_IRQn;
-//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = DMA2_Stream3_IRQn_Priority;
-//  NVIC_Init(&NVIC_InitStructure);
+  /* Enable DMA2 Stream 3 global Interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream3_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = DMA2_Stream3_IRQn_Priority;
+  NVIC_Init(&NVIC_InitStructure);
 
-//  /* Enable DMA2 Stream 4 global Interrupt */
-//  NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream4_IRQn;
-//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = DMA2_Stream4_IRQn_Priority;
-//  NVIC_Init(&NVIC_InitStructure);
+  /* Enable DMA2 Stream 4 global Interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream4_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = DMA2_Stream4_IRQn_Priority;
+  NVIC_Init(&NVIC_InitStructure);
 }
 
 /******************************************************************************/
@@ -171,14 +171,59 @@ void EXTI0_IRQHandler(void)
 
 void EXTI9_5_IRQHandler(void)
 {
-  imu_int_1_isr();
-  imu_int_2_isr();
+  if(EXTI_GetITStatus(EXTI_Line5) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line5);
+  }
+  if(EXTI_GetITStatus(EXTI_Line6) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line6);
+  }
+  if(EXTI_GetITStatus(EXTI_Line7) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line7);
+  }
+  if(EXTI_GetITStatus(EXTI_Line8) != RESET) {
+    imu_int_1_isr();
+    imu_drdy_m_isr();
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line8);
+  }
+  if(EXTI_GetITStatus(EXTI_Line9) != RESET) {
+    imu_int_2_isr();
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line9);
+  }
 }
 
 void EXTI15_10_IRQHandler(void)
 {
-  imu_int_m_isr();
-  button_int_isr();
+  if(EXTI_GetITStatus(EXTI_Line10) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line10);
+  }
+  if(EXTI_GetITStatus(EXTI_Line11) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line11);
+  }
+  if(EXTI_GetITStatus(EXTI_Line12) != RESET) {
+    imu_int_m_isr();
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line12);
+  }
+  if(EXTI_GetITStatus(EXTI_Line13) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line13);
+  }
+  if(EXTI_GetITStatus(EXTI_Line14) != RESET) {
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line14);
+  }
+  if(EXTI_GetITStatus(EXTI_Line15) != RESET) {
+    button_int_isr();
+    /* Clear the EXTI line pending bit */
+    EXTI_ClearITPendingBit(EXTI_Line15);
+  }
 }
 
 void DMA1_Stream3_IRQHandler(void)
@@ -199,6 +244,16 @@ void DMA1_Stream5_IRQHandler(void)
 void DMA1_Stream6_IRQHandler(void)
 {
   com_port_dma_tx_isr();
+}
+
+void DMA2_Stream3_IRQHandler(void)
+{
+
+}
+
+void DMA2_Stream4_IRQHandler(void)
+{
+
 }
 
 /******************************** END OF FILE ********************************/

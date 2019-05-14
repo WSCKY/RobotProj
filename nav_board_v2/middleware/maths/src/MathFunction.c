@@ -106,13 +106,13 @@ void fusionQ_6dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, f
 	qy = q->qy;
 	qz = q->qz;
 
-	gx = unit->GyrData.gyrX;
-	gy = unit->GyrData.gyrY;
-	gz = unit->GyrData.gyrZ;
+	gx = unit->Gyr.X;
+	gy = unit->Gyr.Y;
+	gz = unit->Gyr.Z;
 
-	ax = unit->AccData.accX;
-	ay = unit->AccData.accY;
-	az = unit->AccData.accZ;
+	ax = unit->Acc.X;
+	ay = unit->Acc.Y;
+	az = unit->Acc.Z;
 
 	gx *= DEG_TO_RAD;
 	gy *= DEG_TO_RAD;

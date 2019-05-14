@@ -75,6 +75,14 @@
 #define IMU_INT_M_EXTI_LINE               EXTI_Line12
 #define IMU_INT_M_EXTI_IRQn               EXTI15_10_IRQn
 
+#define IMU_DRDY_M_PIN                    GPIO_Pin_8
+#define IMU_DRDY_M_GPIO_PORT              GPIOB
+#define IMU_DRDY_M_GPIO_CLK               RCC_AHB1Periph_GPIOB
+#define IMU_DRDY_M_EXTI_PORT_SOURCE       EXTI_PortSourceGPIOB
+#define IMU_DRDY_M_EXTI_PIN_SOURCE        EXTI_PinSource8
+#define IMU_DRDY_M_EXTI_LINE              EXTI_Line8
+#define IMU_DRDY_M_EXTI_IRQn              EXTI9_5_IRQn
+
 /* Select IMU: Chip Select pin low */
 #define IMU_SPI_CS_A_ENABLE()       GPIO_ResetBits(IMU_SPI_CS_A_GPIO_PORT, IMU_SPI_CS_A_PIN)
 #define IMU_SPI_CS_G_ENABLE()       GPIO_ResetBits(IMU_SPI_CS_G_GPIO_PORT, IMU_SPI_CS_G_PIN)
@@ -105,10 +113,12 @@ void spi_rx_tx_dma_util(uint8_t *w, uint8_t *r, uint16_t l, uint8_t id);
 void imu_int_1_isr(void);
 void imu_int_2_isr(void);
 void imu_int_m_isr(void);
+void imu_drdy_m_isr(void);
 void imu_spi_dma_rx_isr(void);
 void imu_spi_dma_tx_isr(void);
 void imu_int_1_callback(void) __attribute__((weak));
 void imu_int_2_callback(void) __attribute__((weak));
 void imu_int_m_callback(void) __attribute__((weak));
+void imu_drdy_m_callback(void) __attribute__((weak));
 
 #endif /* __IMU_SPI_H */

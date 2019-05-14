@@ -20,12 +20,14 @@ osThreadId APP_ThreadId;
 osThreadId NAV_ThreadId;
 osThreadId IMU_ThreadId;
 osThreadId COM_ThreadId;
+osThreadId TST_ThreadId;
 
 int init_ret = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void StartThread(void const *argument);
 static void APP_Thread(void const *argument);
+static void TST_Thread(void const *argument);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -68,6 +70,7 @@ static void StartThread(void const *argument)
   osThreadDef(NAV, NAV_Thread, NAV_TASK_PRIORITY, 0, NAV_TASK_STACK_SIZE);
   osThreadDef(COM, COM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   osThreadDef(LED, APP_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadDef(TST, TST_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   /* Start thread */
   if(init_ret == 0) {
     IMU_ThreadId = osThreadCreate(osThread(IMU), NULL);
@@ -75,6 +78,7 @@ static void StartThread(void const *argument)
   }
   COM_ThreadId = osThreadCreate(osThread(COM), NULL);
   APP_ThreadId = osThreadCreate(osThread(LED), NULL);
+  TST_ThreadId = osThreadCreate(osThread(TST), NULL);
 
   vTaskDelete(NULL);
   for(;;);
@@ -102,6 +106,13 @@ if(init_ret == 0) {
     LED_B_OFF(); osDelayUntil (&PreviousWakeTime, 400);
 }
   }
+}
+
+static void TST_Thread(void const *argument)
+{
+	for(;;) {
+		osDelay(50);
+	}
 }
 
 #ifdef USE_FULL_ASSERT

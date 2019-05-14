@@ -34,7 +34,7 @@ void imu_spi_init(void)
   /*!< Enable GPIO clocks */
   RCC_AHB1PeriphClockCmd(IMU_SPI_SCK_GPIO_CLK | IMU_SPI_MISO_GPIO_CLK | IMU_SPI_MOSI_GPIO_CLK |
 	                     IMU_SPI_CS_A_GPIO_CLK | IMU_SPI_CS_G_GPIO_CLK | IMU_SPI_CS_M_GPIO_CLK |
-						 IMU_INT_1_GPIO_CLK | IMU_INT_2_GPIO_CLK | IMU_INT_M_GPIO_CLK, ENABLE);
+						 IMU_INT_1_GPIO_CLK | IMU_INT_2_GPIO_CLK | IMU_INT_M_GPIO_CLK | IMU_DRDY_M_GPIO_CLK, ENABLE);
 
   /*!< SPI pins configuration *************************************************/
 
@@ -83,10 +83,13 @@ void imu_spi_init(void)
   GPIO_Init(IMU_INT_2_GPIO_PORT, &GPIO_InitStructure);
   GPIO_InitStructure.GPIO_Pin = IMU_INT_M_PIN;
   GPIO_Init(IMU_INT_M_GPIO_PORT, &GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin = IMU_DRDY_M_PIN;
+  GPIO_Init(IMU_DRDY_M_GPIO_PORT, &GPIO_InitStructure);
   /* Connect Button EXTI Line to Button GPIO Pin */
   SYSCFG_EXTILineConfig(IMU_INT_1_EXTI_PORT_SOURCE, IMU_INT_1_EXTI_PIN_SOURCE);
   SYSCFG_EXTILineConfig(IMU_INT_2_EXTI_PORT_SOURCE, IMU_INT_2_EXTI_PIN_SOURCE);
   SYSCFG_EXTILineConfig(IMU_INT_M_EXTI_PORT_SOURCE, IMU_INT_M_EXTI_PIN_SOURCE);
+  SYSCFG_EXTILineConfig(IMU_DRDY_M_EXTI_PORT_SOURCE, IMU_DRDY_M_EXTI_PIN_SOURCE);
 
   /*!< Deselect the IMU: Chip Select high */
   IMU_SPI_CS_A_DISABLE(); IMU_SPI_CS_G_DISABLE(); IMU_SPI_CS_M_DISABLE();
@@ -160,6 +163,8 @@ void imu_spi_init(void)
   EXTI_InitStructure.EXTI_Line = IMU_INT_2_EXTI_LINE;
   EXTI_Init(&EXTI_InitStructure);
   EXTI_InitStructure.EXTI_Line = IMU_INT_M_EXTI_LINE;
+  EXTI_Init(&EXTI_InitStructure);
+  EXTI_InitStructure.EXTI_Line = IMU_DRDY_M_EXTI_LINE;
   EXTI_Init(&EXTI_InitStructure);
 
   /* Enable and set INT_1/2/M EXTI Interrupt to the specific priority */
@@ -268,28 +273,29 @@ void spi_rx_tx_dma_util(uint8_t *w, uint8_t *r, uint16_t l, uint8_t id)
 
 void imu_int_1_isr(void)
 {
-  if(EXTI_GetITStatus(IMU_INT_1_EXTI_LINE) != RESET) {
+  if((IMU_INT_1_GPIO_PORT->IDR & IMU_INT_1_PIN) != RESET) {
     imu_int_1_callback();
-    /* Clear the EXTI line pending bit */
-    EXTI_ClearITPendingBit(IMU_INT_1_EXTI_LINE);
   }
 }
 
 void imu_int_2_isr(void)
 {
-  if(EXTI_GetITStatus(IMU_INT_2_EXTI_LINE) != RESET) {
+	if((IMU_INT_2_GPIO_PORT->IDR & IMU_INT_2_PIN) != RESET) {
     imu_int_2_callback();
-    /* Clear the EXTI line pending bit */
-    EXTI_ClearITPendingBit(IMU_INT_2_EXTI_LINE);
   }
 }
 
 void imu_int_m_isr(void)
 {
-  if(EXTI_GetITStatus(IMU_INT_M_EXTI_LINE) != RESET) {
+  if((IMU_INT_M_GPIO_PORT->IDR & IMU_INT_M_PIN) != RESET) {
     imu_int_m_callback();
-    /* Clear the EXTI line pending bit */
-    EXTI_ClearITPendingBit(IMU_INT_M_EXTI_LINE);
+  }
+}
+
+void imu_drdy_m_isr(void)
+{
+  if((IMU_DRDY_M_GPIO_PORT->IDR & IMU_DRDY_M_PIN) != RESET) {
+    imu_drdy_m_callback();
   }
 }
 

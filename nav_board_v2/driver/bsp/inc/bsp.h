@@ -16,6 +16,7 @@
 #include "com_port.h"
 
 #include "usbd_cdc_core.h"
+#include "usb_dcd_int.h"
 
 int bsp_init(void);
 
