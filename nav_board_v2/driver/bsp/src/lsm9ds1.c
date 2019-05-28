@@ -56,26 +56,39 @@ int lsm9ds1_init(void)
   imu_delay(10);
   imu_read_reg_dma_util(LSM9DS1_WHO_AM_I_M, 1, (uint8_t *)&chip_id, IMU_SPI_DEV_ID_M);
   if((chip_id >> 8) != LSM9DS1_WHO_AM_I_M_VALUE) return -1;
-  /* Magnetometer +/-16gauss, reboot memory content, reset register */
-  imu_write_reg_dma(LSM9DS1_CTRL_REG2_M, LSM9DS1_CTRL_REG2_M_FS_16GAUSS | LSM9DS1_CTRL_REG2_M_REBOOT
+  imu_delay(10);
+  /* Magnetometer +/-4gauss, reboot memory content, reset register */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG2_M, LSM9DS1_CTRL_REG2_M_FS_4GAUSS | LSM9DS1_CTRL_REG2_M_REBOOT
 		                               | LSM9DS1_CTRL_REG2_M_SOFT_RST, IMU_SPI_DEV_ID_M);
-  /* Magnetometer Continuous-conversion mode, low-power mode */
-  imu_write_reg_dma(LSM9DS1_CTRL_REG3_M, LSM9DS1_CTRL_REG3_M_LP | LSM9DS1_CTRL_REG3_M_MD_CONT
+  imu_delay(10);
+  /* Magnetometer Power-down mode, low-power mode */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG3_M, LSM9DS1_CTRL_REG3_M_LP | LSM9DS1_CTRL_REG3_M_MD_POWERDOWN2
 		                               | LSM9DS1_CTRL_REG3_M_I2C_DISABLE, IMU_SPI_DEV_ID_M);
-  /* Magnetometer 80Hz, Ultra-high performance mode(X/Y), Temperature compensation enable, Self-test enable */
-  imu_write_reg_dma(LSM9DS1_CTRL_REG1_M, LSM9DS1_CTRL_REG1_M_DO_80HZ | LSM9DS1_CTRL_REG1_M_ST
+  imu_delay(10);
+  /* Magnetometer 0.625Hz, Ultra-high performance mode(X/Y), Temperature compensation enable, Self-test enable */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG1_M, LSM9DS1_CTRL_REG1_M_DO_0p625HZ | LSM9DS1_CTRL_REG1_M_ST
   		                               | LSM9DS1_CTRL_REG1_M_TEMP_COMP | LSM9DS1_CTRL_REG1_M_OM_ULTRAHIGH, IMU_SPI_DEV_ID_M);
   imu_delay(50);
-  imu_write_reg_dma(LSM9DS1_CTRL_REG1_M, LSM9DS1_CTRL_REG1_M_DO_80HZ | LSM9DS1_CTRL_REG1_M_FAST_ODR
-    		                               | LSM9DS1_CTRL_REG1_M_TEMP_COMP | LSM9DS1_CTRL_REG1_M_OM_ULTRAHIGH, IMU_SPI_DEV_ID_M);
+  /* Magnetometer +/-16gauss, reboot memory content, reset register */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG2_M, LSM9DS1_CTRL_REG2_M_FS_4GAUSS | LSM9DS1_CTRL_REG2_M_REBOOT
+  		                               | LSM9DS1_CTRL_REG2_M_SOFT_RST, IMU_SPI_DEV_ID_M);
+  imu_delay(10);
+  /* Magnetometer power-down mode, low-power mode */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG3_M, LSM9DS1_CTRL_REG3_M_LP | LSM9DS1_CTRL_REG3_M_MD_POWERDOWN2
+  		                               | LSM9DS1_CTRL_REG3_M_I2C_DISABLE, IMU_SPI_DEV_ID_M);
+  imu_delay(10);
   /* Magnetometer +/-16gauss */
   imu_write_reg_dma(LSM9DS1_CTRL_REG2_M, LSM9DS1_CTRL_REG2_M_FS_16GAUSS, IMU_SPI_DEV_ID_M);
   /* enable Continuous-conversion mode, enable SPI 4-wire, disable I2C interface */
   imu_write_reg_dma(LSM9DS1_CTRL_REG3_M, LSM9DS1_CTRL_REG3_M_MD_CONT | LSM9DS1_CTRL_REG3_M_I2C_DISABLE, IMU_SPI_DEV_ID_M);
+  /* Magnetometer 80Hz, Ultra-high performance mode(X/Y), Temperature compensation enable, Self-test enable */
+  imu_write_reg_dma(LSM9DS1_CTRL_REG1_M, LSM9DS1_CTRL_REG1_M_DO_80HZ | LSM9DS1_CTRL_REG1_M_FAST_ODR
+    		                               | LSM9DS1_CTRL_REG1_M_TEMP_COMP | LSM9DS1_CTRL_REG1_M_OM_ULTRAHIGH, IMU_SPI_DEV_ID_M);
   /* Magnetometer Ultra-high performance mode(Z) */
   imu_write_reg_dma(LSM9DS1_CTRL_REG4_M, LSM9DS1_CTRL_REG4_M_OMZ_ULTRAHIGH, IMU_SPI_DEV_ID_M);
   /* Magnetometer fast read */
-  imu_write_reg_dma(LSM9DS1_CTRL_REG5_M, LSM9DS1_CTRL_REG5_M_FAST_READ | LSM9DS1_CTRL_REG5_M_BDU, IMU_SPI_DEV_ID_M);
+  /* <! DO NOT DO THIS!!! >*/
+//  imu_write_reg_dma(LSM9DS1_CTRL_REG5_M, LSM9DS1_CTRL_REG5_M_FAST_READ, IMU_SPI_DEV_ID_M);
 
 #if FREERTOS_ENABLED
   imu_queue_create();
