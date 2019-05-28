@@ -69,7 +69,8 @@ static void calib_loop(IMU_RAW *raw)
   if(TimeStart == 0) {
     TimeStart = TimeCurrent; // init time stamp.
   }
-  if(turbulence < 15) {
+  if((turbulence < 10) && ((ABS(raw->gyrX) < 80) && (ABS(raw->gyrY) < 80) && (ABS(raw->gyrZ) < 80))) {
+//  if(turbulence < 15) {
     if((TimeCurrent - TimeStart) > 2000) { // keep 1 second.
       if(gyr_calib_flag == 0) {
         gyr_calib_flag = 1;
