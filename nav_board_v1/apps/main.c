@@ -99,7 +99,7 @@ static void bsp_init(void)
   HeaterDrvInit();
   mpu9250_init();
 }
-
+extern uint8_t mag_id;
 /**
   * @brief  Toggle LED thread
   * @param  Thread not used
@@ -130,6 +130,7 @@ static void APP_Thread(void const *argument)
     osDelayUntil (&PreviousWakeTime, 100);
     LED_RED_OFF();
     osDelayUntil (&PreviousWakeTime, 400);
+    if(mag_id == 0x48) {
     LED_BLUE_ON();
 		osDelayUntil (&PreviousWakeTime, 100);
     LED_BLUE_OFF();
@@ -138,6 +139,7 @@ static void APP_Thread(void const *argument)
     osDelayUntil (&PreviousWakeTime, 100);
     LED_GREEN_OFF();
     osDelayUntil (&PreviousWakeTime, 400);
+    }
   }
 }
 

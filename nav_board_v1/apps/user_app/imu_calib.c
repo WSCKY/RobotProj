@@ -11,7 +11,7 @@ static QueueHandle_t q_mpu_unit = NULL; /* queue to send message to estimator */
 
 /* debug data. */
 static COM_MSG_DEF dbg_msg;
-static IMU_INFO_DEF imu_info;
+static IMU_9DOF_DEF imu_info;
 static void debug_msg_init(void);
 static void com_msg_update(void);
 
@@ -36,6 +36,9 @@ void CalibTask(void const *argument)
         calib_raw.accX = raw.accX;
         calib_raw.accY = raw.accY;
         calib_raw.accZ = raw.accZ;
+        calib_raw.magX = raw.magX;
+        calib_raw.magY = raw.magY;
+        calib_raw.magZ = raw.magZ;
         mpu_raw2unit(&calib_raw, &unit);
         xQueueSend(q_mpu_unit, (void *)&unit, 5);
       }
@@ -96,8 +99,8 @@ static void calib_loop(void)
 
 static void debug_msg_init(void)
 {
-  dbg_msg.len = sizeof(IMU_INFO_DEF);
-  dbg_msg.type = TYPE_IMU_INFO_Resp;
+  dbg_msg.len = sizeof(IMU_9DOF_DEF);
+  dbg_msg.type = TYPE_IMU_9DOF_Resp;
   dbg_msg.pointer = (void *)&imu_info;
 }
 
@@ -116,6 +119,9 @@ static void com_msg_update(void)
     imu_info.gyrX = calib_raw.gyrX;
     imu_info.gyrY = calib_raw.gyrY;
     imu_info.gyrZ = calib_raw.gyrZ;
+    imu_info.magX = unit.MagData.magX;
+    imu_info.magY = unit.MagData.magY;
+    imu_info.magZ = unit.MagData.magZ;
     xQueueSend(q_com, (void *)&dbg_msg, 1);
     time_stamp = _Get_Millis();
   }
