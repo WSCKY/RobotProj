@@ -75,4 +75,8 @@ __PACK_BEGIN typedef struct {
 	uint32_t FileCRC;
 } __PACK_END FWInfoDef;
 
+__PACK_BEGIN typedef struct {
+	float fData1, fData2, fData3, fData4, fData5, fData6, fData7, fData8, fData9;
+} __PACK_END DebugFloatDef;
+
 #endif /* SYSCONFIG_SYSDATATYPES_H_ */
