@@ -33,6 +33,9 @@ void mpu_update_hook(IMU_RAW *pRaw)
 			fusionDt = 0.001f;
 		} else {
 			fusionDt = (float)(imu_unit.TimeStamp - lastTimeStamp) / 1000000.0f;
+			if(fusionDt > 0.005f) {
+				fusionDt = 0.001f;
+			}
 			lastTimeStamp = imu_unit.TimeStamp;
 		}
 		fusionQ_6dot(&imu_unit, &AttQ, prop_gain_kp, intg_gain_ki, fusionDt);
