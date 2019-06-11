@@ -19,7 +19,7 @@ void com_task_init(void)
 	TxPacket.FormatData.stx2 = kySTX2;
 	TxPacket.FormatData.dev_id = HARD_DEV_ID;
 }
-
+//extern DebugFloatDef DBGDATA;
 //static uint8_t rx_data;
 static uint8_t read_len;
 static uint8_t read_buf[8];
@@ -32,7 +32,7 @@ void com_task(void)
 			TxPacket.FormatData.msg_id = TYPE_ATT_QUAT_Resp;
 			TxPacket.FormatData.length = sizeof(Quat_T);
 			TxPacket.FormatData.PacketData.TypeData.AttitudeQuat = get_est_q();
-		} else {
+		} else {// if(tx_cnt % 3 == 1)
 			TxPacket.FormatData.msg_id = TYPE_IMU_INFO_Resp;
 			TxPacket.FormatData.length = sizeof(IMU_INFO_DEF);
 			imu_unit = get_imu_unit();
@@ -42,6 +42,10 @@ void com_task(void)
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrX = imu_unit.GyrData.gyrX;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrY = imu_unit.GyrData.gyrY;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrZ = imu_unit.GyrData.gyrZ;
+//		} else {
+//			TxPacket.FormatData.msg_id = TYPE_DEBUG_DATA_Resp;
+//			TxPacket.FormatData.length = sizeof(DebugFloatDef);
+//			TxPacket.FormatData.PacketData.TypeData.DebugData = DBGDATA;
 		}
 		SendTxPacket(&UartPortHandle, &TxPacket);
 		SendTxPacket(&CDC_PortHandle, &TxPacket);
