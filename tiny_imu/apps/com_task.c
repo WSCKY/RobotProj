@@ -33,15 +33,24 @@ void com_task(void)
 			TxPacket.FormatData.length = sizeof(Quat_T);
 			TxPacket.FormatData.PacketData.TypeData.AttitudeQuat = get_est_q();
 		} else {// if(tx_cnt % 3 == 1)
-			TxPacket.FormatData.msg_id = TYPE_IMU_INFO_Resp;
-			TxPacket.FormatData.length = sizeof(IMU_INFO_DEF);
+			TxPacket.FormatData.msg_id = TYPE_IMU_9DOF_Resp;
+			TxPacket.FormatData.length = sizeof(IMU_9DOF_DEF);
 			imu_unit = get_imu_unit();
-			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.accX = imu_unit.AccData.accX;
+/*			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.accX = imu_unit.AccData.accX;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.accY = imu_unit.AccData.accY;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.accZ = imu_unit.AccData.accZ;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrX = imu_unit.GyrData.gyrX;
 			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrY = imu_unit.GyrData.gyrY;
-			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrZ = imu_unit.GyrData.gyrZ;
+			TxPacket.FormatData.PacketData.TypeData.IMU_InfoData.gyrZ = imu_unit.GyrData.gyrZ;*/
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.accX = imu_unit.AccData.accX;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.accY = imu_unit.AccData.accY;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.accZ = imu_unit.AccData.accZ;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.gyrX = imu_unit.GyrData.gyrX;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.gyrY = imu_unit.GyrData.gyrY;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.gyrZ = imu_unit.GyrData.gyrZ;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.magX = imu_unit.MagData.magX;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.magY = imu_unit.MagData.magY;
+			TxPacket.FormatData.PacketData.TypeData.IMU_9DofData.magZ = imu_unit.MagData.magZ;
 //		} else {
 //			TxPacket.FormatData.msg_id = TYPE_DEBUG_DATA_Resp;
 //			TxPacket.FormatData.length = sizeof(DebugFloatDef);

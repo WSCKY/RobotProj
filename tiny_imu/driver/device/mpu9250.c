@@ -19,12 +19,18 @@ static IMU_RAW mpu_buffer[MPU_DATA_DEPTH] = {0};
 #endif /* FREERTOS_ENABLED */
 
 static IMU_RAW mpu_raw_data;
-static uint8_t mpu_tx_buffer[15] = {0};
-static uint8_t mpu_rx_buffer[15] = {0};
+static uint8_t mpu_tx_buffer[23] = {0};
+static uint8_t mpu_rx_buffer[23] = {0};
+
+static uint8_t MAG_ASAX = 0, MAG_ASAY = 0, MAG_ASAZ = 0;
+static float AK8963_ASA[3] = {0};
 
 static void mpu_write_reg_dma(uint8_t reg, uint8_t val);
 static void mpu_read_reg_dma(uint8_t reg, uint8_t num, uint8_t *r);
 static void mpu_read_reg_dma_util(uint8_t reg, uint8_t num, uint8_t *r);
+static void mpu_aux_read_reg(uint8_t slaveAddr, uint8_t regAddr, uint8_t *r);
+static void mpu_aux_write_reg(uint8_t slaveAddr, uint8_t regAddr, uint8_t regData);
+static void mpu_aux_slaveconfig(uint8_t slaveid, uint8_t slaveAddr, uint8_t regAddr, uint8_t size);
 
 static void IMU_INT_Callback(void);
 
@@ -34,6 +40,7 @@ static void mpu_queue_create(void);
 
 #endif /* FREERTOS_ENABLED */
 
+uint8_t mag_id = 0;
 static uint16_t mpu_id = 0xFFFF; /* (mpu_id >> 8) = 0x71 */
 /*
  * configure the MPU9250 registers.
@@ -56,13 +63,13 @@ uint8_t mpu9250_init(void)
   mpu_write_reg_dma(0x68, 0x07);
   /*
     1, Disable FIFO access from serial interface. (bit6 -> 0)
-    2, Disable I2C Master I/F module. (bit5 -> 0)
+    2, ENABLE I2C Master I/F module (USED FOR COMPASS). (bit5 -> 1)
     3, Disable I2C Slave module and put the serial interface in SPI mode only. (bit4 -> 1)
     4, Reset FIFO module. Reset is asynchronous. This bit auto clears after one clock cycle. (bit2 - > 1)
     5, Reset I2C Master module. Reset is asynchronous. This bit auto clears after one clock cycle. (bit1 -> 1)
     6, Reset all gyro digital signal path, accel digital signal path, and temp digital signal path. This bit also clears all the sensor registers. (bit0 -> 1)
   */
-  mpu_write_reg_dma(0x6A, 0x17);
+  mpu_write_reg_dma(0x6A, 0x30);
   /* Auto selects the best available clock source - PLL if ready, else use the Internal oscillator */
   mpu_write_reg_dma(0x6B, 0x01);
   mpu_delay(10);
@@ -95,6 +102,41 @@ uint8_t mpu9250_init(void)
   mpu_delay(1);
   /* Enable gyroscope & accelerometer(1 is disabled, 0 is on) */
   mpu_write_reg_dma(0x6C, 0x00);
+  mpu_delay(1);
+
+  /* COMPASS CONFIGURATE */
+  /*
+   I2C Master Control:
+   1, Delays the data ready interrupt until external sensor data is loaded. (bit6 -> 1)
+   2, controls the I2C Master’s transition from one slave read to the next slave read. If 1, there is a stop between reads. (bit4 -> 1)
+   3, I2C_MST_CLK [3:0] -> 1101 select 400KHz.
+   */
+  mpu_write_reg_dma(0x24, 0x5D); mpu_delay(1);
+  /*
+   1, Delays shadowing of external sensor data until all data is received. (bit7 -> 1)
+   */
+  mpu_write_reg_dma(0x67, 0x80);
+  mpu_delay(50); /* have a rest */
+  mpu_aux_read_reg(0x0C, 0x00, &mag_id);
+  mpu_aux_write_reg(0x0C, 0x0B, 0x01); /* When '1' is set, all registers are initialized. After reset, SRST bit turns to '0' automatically. */
+  mpu_delay(50);
+  mpu_aux_write_reg(0x0C, 0x0A, 0x00); /* Power-down mode */
+  mpu_delay(10);
+  mpu_aux_write_reg(0x0C, 0x0A, 0x1F); /* Fuse ROM access mode, Read sensitivity adjustment && 16-bit output */
+  mpu_delay(10);
+  mpu_aux_read_reg(0x0C, 0x10, &MAG_ASAX); mpu_delay(1);
+  mpu_aux_read_reg(0x0C, 0x11, &MAG_ASAY); mpu_delay(1);
+  mpu_aux_read_reg(0x0C, 0x12, &MAG_ASAZ); mpu_delay(1);
+  mpu_delay(1);
+  mpu_aux_write_reg(0x0C, 0x0A, 0x00); /* Power-down mode */
+  mpu_delay(10);
+  mpu_aux_write_reg(0x0C, 0x0A, 0x16); /* Continuous measurement mode 2 && 16-bit output */
+  mpu_delay(1);
+  AK8963_ASA[0] = ((MAG_ASAX - 128) * 0.5f / 128 + 1) * 0.15f;
+  AK8963_ASA[1] = ((MAG_ASAY - 128) * 0.5f / 128 + 1) * 0.15f;
+  AK8963_ASA[2] = ((MAG_ASAZ - 128) * 0.5f / 128 + 1) * 0.15f;
+  /* add ak8963 to i2c slave 0 */
+  mpu_aux_slaveconfig(1, 0x0C, 0x02, 8); /* read from ST1(Status 1) to ST2(Status 2) */
   mpu_delay(1);
 
   /* For applications requiring faster communications, the sensor and interrupt registers may be read using SPI at 20MHz. */
@@ -138,6 +180,9 @@ void mpu_raw2unit(IMU_RAW *raw, IMU_UNIT *unit)
   unit->GyrData.gyrX = raw->gyrX * 0.06103515625f;
   unit->GyrData.gyrY = raw->gyrY * 0.06103515625f;
   unit->GyrData.gyrZ = raw->gyrZ * 0.06103515625f;
+  unit->MagData.magX = raw->magX * AK8963_ASA[0];
+  unit->MagData.magY = raw->magY * AK8963_ASA[1];
+  unit->MagData.magZ = raw->magZ * AK8963_ASA[2];
   unit->TimeStamp = raw->TimeStamp;
 }
 
@@ -149,7 +194,7 @@ static void IMU_INT_Callback(void)
 #endif /* FREERTOS_ENABLED */
   if(mpu9250_configured == 1) {
     TS = _Get_Micros();
-    mpu_read_reg_dma(0x3B, 14, mpu_rx_buffer);
+    mpu_read_reg_dma(0x3B, 22, mpu_rx_buffer);
 
     /* organize the received data */
     ((int8_t *)&mpu_raw_data.accX)[0] = mpu_rx_buffer[2];
@@ -172,6 +217,15 @@ static void IMU_INT_Callback(void)
 
     ((int8_t *)&mpu_raw_data.gyrZ)[0] = mpu_rx_buffer[14];
     ((int8_t *)&mpu_raw_data.gyrZ)[1] = mpu_rx_buffer[13];
+
+    ((int8_t *)&mpu_raw_data.magX)[0] = mpu_rx_buffer[16];
+    ((int8_t *)&mpu_raw_data.magX)[1] = mpu_rx_buffer[17];
+
+    ((int8_t *)&mpu_raw_data.magY)[0] = mpu_rx_buffer[18];
+    ((int8_t *)&mpu_raw_data.magY)[1] = mpu_rx_buffer[19];
+
+    ((int8_t *)&mpu_raw_data.magZ)[0] = mpu_rx_buffer[20];
+    ((int8_t *)&mpu_raw_data.magZ)[1] = mpu_rx_buffer[21];
 
     mpu_raw_data.TimeStamp = TS;
 
@@ -225,6 +279,16 @@ uint8_t mpu_pull_new(IMU_RAW *pRaw)
 #endif /* MPU_DATA_UPDATE_HOOK_ENABLE */
 #endif /* FREERTOS_ENABLED */
 
+static void mpu_aux_slaveconfig(uint8_t slaveid, uint8_t slaveAddr, uint8_t regAddr, uint8_t size)
+{
+	uint8_t offset = slaveid * 3;
+	mpu_write_reg_dma(0x25 + offset, slaveAddr | 0x80); /* offset from I2C_SLV0_ADDR */mpu_delay(1);
+	mpu_write_reg_dma(0x26 + offset, regAddr); mpu_delay(1);
+	mpu_write_reg_dma(0x27 + offset, 0x80 | size); mpu_delay(1);
+	mpu_write_reg_dma(0x34, 0x09); /* this slave will only be enabled every (1 + 9) samples */mpu_delay(1);
+	mpu_write_reg_dma(0x67, 0x80 | (0x01 << slaveid)); /* delayed access enabled */mpu_delay(1);
+}
+
 /*
  * write data to the specific register.
  */
@@ -235,6 +299,21 @@ static void mpu_write_reg_dma(uint8_t reg, uint8_t val)
 	spi_rx_tx_dma_util(mpu_tx_buffer, mpu_rx_buffer, 2);
 }
 
+static void mpu_aux_write_reg(uint8_t slaveAddr, uint8_t regAddr, uint8_t regData)
+{
+	uint32_t timeout = 10;
+	mpu_write_reg_dma(0x31, slaveAddr); /* I2C_SLV4_ADDR */mpu_delay(1);
+	mpu_write_reg_dma(0x32, regAddr); /* I2C_SLV4_REG */mpu_delay(1);
+	mpu_write_reg_dma(0x33, regData); /* I2C_SLV4_DO */mpu_delay(1);
+	mpu_write_reg_dma(0x34, 0x80); /* I2C_SLV4_CTRL -> Enable data transfer */mpu_delay(1);
+	mpu_tx_buffer[0] = 0x36 | 0x80;
+	mpu_tx_buffer[1] = 0xFF;
+	do {
+		mpu_delay(1);
+		spi_rx_tx_dma_util(mpu_tx_buffer, mpu_rx_buffer, 2);
+	} while(((mpu_rx_buffer[1] & 0x40) == 0) && (timeout --));
+}
+
 /*
  * read number of data from the specific register.
  */
@@ -242,6 +321,23 @@ static void mpu_read_reg_dma(uint8_t reg, uint8_t num, uint8_t *r)
 {
 	mpu_tx_buffer[0] = reg | 0x80;
 	spi_rx_tx_dma(mpu_tx_buffer, r, num + 1);//ignore the first byte.
+}
+
+static void mpu_aux_read_reg(uint8_t slaveAddr, uint8_t regAddr, uint8_t *r)
+{
+	uint32_t timeout = 10;
+	mpu_write_reg_dma(0x31, slaveAddr | 0x80); /* I2C_SLV4_ADDR */mpu_delay(1);
+	mpu_write_reg_dma(0x32, regAddr); /* I2C_SLV4_REG */mpu_delay(1);
+	mpu_write_reg_dma(0x34, 0x80); /* I2C_SLV4_CTRL -> Enable data transfer */mpu_delay(1);
+	mpu_tx_buffer[0] = 0x36 | 0x80;
+	mpu_tx_buffer[1] = 0xFF;
+	do {
+		mpu_delay(1);
+		spi_rx_tx_dma_util(mpu_tx_buffer, mpu_rx_buffer, 2);
+	} while(((mpu_rx_buffer[1] & 0x40) == 0) && (timeout --));
+	mpu_tx_buffer[0] = 0x35 | 0x80; /* I2C_SLV4_DI */
+	spi_rx_tx_dma_util(mpu_tx_buffer, mpu_rx_buffer, 2);
+	*r = mpu_rx_buffer[1];
 }
 
 /*

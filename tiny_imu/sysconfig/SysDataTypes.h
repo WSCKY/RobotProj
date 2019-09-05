@@ -14,6 +14,7 @@ __PACK_BEGIN typedef struct {
 	int16_t accX, accY, accZ;
 	int16_t temp;
 	int16_t gyrX, gyrY, gyrZ;
+	int16_t magX, magY, magZ;
 	uint32_t TimeStamp;
 } __PACK_END IMU_RAW;
 
@@ -33,10 +34,15 @@ __PACK_BEGIN typedef struct {
 	float gyrX, gyrY, gyrZ;
 } __PACK_END GyrDataDef;
 
+__PACK_BEGIN typedef struct {
+	float magX, magY, magZ;
+} __PACK_END MagDataDef;
+
 typedef struct {
 	AccDataDef AccData;
 	float Temperature;
 	GyrDataDef GyrData;
+	MagDataDef MagData;
 	uint32_t TimeStamp;
 } __PACK_END IMU_UNIT;
 
@@ -44,6 +50,13 @@ __PACK_BEGIN typedef struct {
 	float accX, accY, accZ;
 	float gyrX, gyrY, gyrZ;
 } __PACK_END IMU_INFO_DEF;
+
+__PACK_BEGIN typedef struct {
+  float accX, accY, accZ;
+  float gyrX, gyrY, gyrZ;
+  float magX, magY, magZ;
+  uint32_t TS;
+} __PACK_END IMU_9DOF_DEF;
 
 __PACK_BEGIN typedef struct {
 	float qw, qx, qy, qz;

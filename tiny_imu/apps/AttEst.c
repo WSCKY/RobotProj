@@ -28,6 +28,9 @@ void mpu_update_hook(IMU_RAW *pRaw)
 		pRaw->gyrY -= GyrOffset.gyrY;
 		pRaw->gyrZ -= GyrOffset.gyrZ;
 		mpu_raw2unit(pRaw, &imu_unit);
+		imu_unit.MagData.magX = (imu_unit.MagData.magX + 5.208611f) * 1.0118841f;
+		imu_unit.MagData.magY = (imu_unit.MagData.magY - 9.359891f) * 1.0243436f;
+		imu_unit.MagData.magZ = (imu_unit.MagData.magZ + 5.3188553f) * 0.9651517f;
 		if(lastTimeStamp == 0) {
 			lastTimeStamp = imu_unit.TimeStamp;
 			fusionDt = 0.001f;
@@ -38,7 +41,7 @@ void mpu_update_hook(IMU_RAW *pRaw)
 			}
 			lastTimeStamp = imu_unit.TimeStamp;
 		}
-		fusionQ_6dot(&imu_unit, &AttQ, prop_gain_kp, intg_gain_ki, fusionDt);
+		fusionQ_9dot(&imu_unit, &AttQ, prop_gain_kp, intg_gain_ki, fusionDt);
 //		Quat2Euler(&AttQ, &AttE);
 	}
 }

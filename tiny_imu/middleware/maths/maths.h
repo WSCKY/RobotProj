@@ -30,6 +30,7 @@ typedef union {
 //uint8_t ComputeCRC8(uint8_t *pchMessage, uint32_t dwLength, uint8_t ucCRC8);
 
 void fusionQ_6dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
+void fusionQ_9dot(IMU_UNIT *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
 void Quat2Euler(Quat_T* q, Euler_T* eur);
 
 #endif /* __MATHS_H */
