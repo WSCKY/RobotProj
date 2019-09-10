@@ -79,7 +79,6 @@ __PACK_BEGIN typedef struct {
   float magX;
   float magY;
   float magZ;
-  uint32_t TS;
 } __PACK_END IMU_9DOF_DEF;
 
 __PACK_BEGIN typedef struct {
