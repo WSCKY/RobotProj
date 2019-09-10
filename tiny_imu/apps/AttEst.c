@@ -28,9 +28,23 @@ void mpu_update_hook(IMU_RAW *pRaw)
 		pRaw->gyrY -= GyrOffset.gyrY;
 		pRaw->gyrZ -= GyrOffset.gyrZ;
 		mpu_raw2unit(pRaw, &imu_unit);
-		imu_unit.MagData.magX = (imu_unit.MagData.magX + 5.208611f) * 1.0118841f;
-		imu_unit.MagData.magY = (imu_unit.MagData.magY - 9.359891f) * 1.0243436f;
-		imu_unit.MagData.magZ = (imu_unit.MagData.magZ + 5.3188553f) * 0.9651517f;
+//      1):
+//		ret: 5.208611, -9.359891, 5.3188553, -1078.944, 1.0118841, 1.0243436, 0.9651517
+//		A:
+//		ret: -29.158432, -30.484566, 28.340067, 710.47034, 0.8949641, 0.8566694, 0.84426504
+//		B:
+//		ret: -16.728153, 0.16942565, 14.600262, -857.3125, 0.8747971, 0.90442705, 0.84863025
+//		C:
+//		ret: -27.982508, 1.7761792, 37.98497, 663.5361, 0.9576873, 0.8051109, 0.89985245
+//		D:
+//		ret: -13.28267, -12.327958, 26.277546, -514.3084, 0.8859506, 0.8599283, 0.81604105
+//		E:
+//		ret: -14.88855, -8.243807, 23.862255, -407.6048, 1.0398453, 1.0339141, 0.94180405
+//		F:
+//		ret: -21.906042, -20.760363, 31.867071, 824.5015, 1.0469339, 1.0408981, 1.0200101
+		imu_unit.MagData.magX = (imu_unit.MagData.magX - 29.158432f) * 0.8949641f;
+		imu_unit.MagData.magY = (imu_unit.MagData.magY - 30.484566f) * 0.8566694f;
+		imu_unit.MagData.magZ = (imu_unit.MagData.magZ + 28.340067f) * 0.84426504f;
 		if(lastTimeStamp == 0) {
 			lastTimeStamp = imu_unit.TimeStamp;
 			fusionDt = 0.001f;
