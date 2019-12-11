@@ -1,0 +1,6 @@
+others/
+*.c
+*.h
+.project
+.cproject
+
