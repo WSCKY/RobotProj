@@ -10,7 +10,7 @@
 
 #include "drivers.h"
 
-#if FREERTOS_ENABLE
+#if FREERTOS_ENABLED
 #define imu_delay                                osDelay
 #else
 #define imu_delay                                HAL_Delay

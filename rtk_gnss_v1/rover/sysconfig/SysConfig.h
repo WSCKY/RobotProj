@@ -13,9 +13,9 @@
 
 #include "boardconfig.h"
 
-#define FREERTOS_ENABLE                          (1)
+#define FREERTOS_ENABLED                         (1)
 
-#if FREERTOS_ENABLE
+#if FREERTOS_ENABLED
 #define kmm_alloc                                pvPortMalloc
 #define kmm_free                                 vPortFree
 #else
@@ -23,7 +23,7 @@
 
 #define kmm_alloc                                malloc
 #define kmm_free                                 free
-#endif /* FREERTOS_ENABLE */
+#endif /* FREERTOS_ENABLED */
 
 /* Interrupt priority list */
 #define INT_PRIORITY_MAX                         configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
