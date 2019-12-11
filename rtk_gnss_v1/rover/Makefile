@@ -28,6 +28,7 @@ INCS = -I$(TopPath)/startup \
        -I$(TopPath)/driver/usbdrv/core \
        -I$(TopPath)/driver/usbdrv/cdc \
        -I$(TopPath)/middleware/freertos/inc \
+       -I$(TopPath)/middleware/algorithm/ \
        -I$(TopPath)/middleware/kylink \
        -I$(TopPath)/middleware/rb \
        -I$(TopPath)/middleware/ubx \
@@ -45,9 +46,10 @@ LIB_PATH := -L$(BuildPath)/rb \
             -L$(BuildPath)/bsp \
             -L$(BuildPath)/rtos \
             -L$(BuildPath)/stdrv \
-            -L$(BuildPath)/kylink
+            -L$(BuildPath)/kylink \
+	    -L$(BuildPath)/algorithm \
 # External Libraries -lbsp
-LIBS := -lrb -lubx -llog -lkylink -lstdrv -lrtos
+LIBS := -lrb -lubx -llog -lkylink -lalgorithm -lstdrv -lrtos
 
 # Other configuration # -Wshadow
 CFGS = -mthumb -Dprintf=iprintf -fno-exceptions -fno-builtin --short-enums -ffunction-sections -fdata-sections -fno-strict-aliasing -pipe
@@ -162,6 +164,7 @@ libraries:
 	$(MAKE) -C middleware/ubx BUILD=$(BuildPath)/ubx
 	$(MAKE) -C middleware/log BUILD=$(BuildPath)/log
 	$(MAKE) -C middleware/kylink BUILD=$(BuildPath)/kylink
+	$(MAKE) -C middleware/algorithm BUILD=$(BuildPath)/algorithm
 	$(MAKE) -C middleware/freertos BUILD=$(BuildPath)/rtos
 	$(MAKE) -C driver/stdriver BUILD=$(BuildPath)/stdrv
 	$(MAKE) -C driver/bsp BUILD=$(BuildPath)/bsp
