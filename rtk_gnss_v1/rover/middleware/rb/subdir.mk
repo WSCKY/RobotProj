@@ -1,6 +1,7 @@
 ################################################################################
-# subdir Makefile
-# kyChu@2019-2-20
+# rb/subdir.mk
+# Author: kyChu <kyChu@qq.com>
+# Date:   2019-12-3
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
