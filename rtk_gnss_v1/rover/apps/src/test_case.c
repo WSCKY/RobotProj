@@ -22,9 +22,6 @@ void test_case_task(void const *argument)
   (void) argument;
   ky_info("test case task start.\n");
   osDelay(500);
-  if(cdcif_init() != status_ok) {
-	  ky_err("usb cdc init failed.\n");
-  }
   if(icm42605_init() != status_ok) {
 	  ky_err("icm42605 init failed.\n");
   }

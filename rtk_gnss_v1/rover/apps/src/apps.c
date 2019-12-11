@@ -19,18 +19,14 @@ void APP_StartThread(void const *argument)
   osThreadDef(GNSS, gnss_navg_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(RTCM, rtcm_transfer_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(TEST, test_case_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8);
-#if !DEBUG_ENABLE
-  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-#endif
+  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(LED_BLUE, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   osThreadDef(LED_GREEN, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 
   if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err("gnss task create failed.\n");
   if(osThreadCreate(osThread(RTCM), NULL) == NULL) ky_err("rtcm transfer task failed.\n");
   if(osThreadCreate(osThread(TEST), NULL) == NULL) ky_err("test task create failed.\n");
-#if !DEBUG_ENABLE
   if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err("mesg transfer task failed.\n");
-#endif
   LEDThread1Handle = osThreadCreate(osThread(LED_BLUE), NULL); if(LEDThread1Handle == NULL) ky_err("led1 task create failed.\n");
   LEDThread2Handle = osThreadCreate(osThread(LED_GREEN), NULL); if(LEDThread2Handle == NULL) ky_err("led2 task create failed.\n");
 

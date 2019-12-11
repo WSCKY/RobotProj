@@ -38,8 +38,8 @@ MODULE_NAME := libapp
 #AR      := $(Q)arm-none-eabi-ar
 #ECHO    := $(Q)@echo
 
-C_SRCS := $(wildcard *.c)
-OBJS := $(addprefix $(BUILD)/obj/,$(C_SRCS:.c=.o))
+C_SRCS := $(wildcard src/*.c)
+OBJS := $(addprefix $(BUILD)/,$(C_SRCS:.c=.o))
 OBJ_DIRS := $(sort $(dir $(OBJS)))
 
 all: $(MODULE_NAME).a
@@ -47,7 +47,7 @@ all: $(MODULE_NAME).a
 $(OBJ_DIRS):
 	$(MKDIR) -p $@
 
-$(BUILD)/obj/%.o: %.c | $(OBJ_DIRS)
+$(BUILD)/%.o: %.c | $(OBJ_DIRS)
 	$(ECHO) ' CC $<'
 	$(CC) $(PLATFORM) $(DEFS) $(INCS) $(CFGS) -Os $(DBGS) -Wall -fmessage-length=0 -ffunction-sections -c -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -o "$@" "$<"
 

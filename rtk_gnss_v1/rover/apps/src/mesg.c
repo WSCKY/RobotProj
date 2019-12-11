@@ -16,8 +16,16 @@ static double computeAzimuth(double lat1, double lon1, double lat2, double lon2)
 double test_val = 0;
 void mesg_send_task(void const *argument)
 {
+  if(cdcif_init() != status_ok) {
+    ky_err("usb cdc init failed.\n");
+    ky_err("mesg module start failed, exit!\n");
+    vTaskDelete(NULL);
+  }
+
+  ky_info("mesg module started.\n");
+
   kyLinkInit(&kylink_msg);
-  kyLinkConfigTxFunc(&kylink_msg, comif_tx_bytes_util);
+  kyLinkConfigTxFunc(&kylink_msg, cdcif_tx_bytes);
   kyLinkInitPackage(&tx_packet);
 
   tx_packet.FormatData.msg_id = TYPE_PVTS_Info_Resp;

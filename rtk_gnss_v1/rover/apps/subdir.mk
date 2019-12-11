@@ -6,13 +6,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-./apps/apps.c \
-./apps/f9pconfig.c \
-./apps/gnss.c \
-./apps/server.c \
-./apps/test_case.c \
-./apps/cpu_utils.c \
-./apps/mesg.c
+./apps/src/apps.c \
+./apps/src/f9pconfig.c \
+./apps/src/gnss.c \
+./apps/src/server.c \
+./apps/src/test_case.c \
+./apps/src/cpu_utils.c \
+./apps/src/mesg.c
 
 OBJS += \
 $(BuildPath)/apps/apps.o \
@@ -35,6 +35,6 @@ $(BuildPath)/apps/mesg.d
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 
 # Each subdirectory must supply rules for building sources it contributes
-$(BuildPath)/apps/%.o: ./apps/%.c | $(OBJ_DIRS)
+$(BuildPath)/apps/%.o: ./apps/src/%.c | $(OBJ_DIRS)
 	$(ECHO) ' CC $<'
 	$(CC) $(PLATFORM) $(DEFS) $(INCS) $(CFGS) -O0 $(DBGS) -Wall -fmessage-length=0 -ffunction-sections -c -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -o "$@" "$<"
