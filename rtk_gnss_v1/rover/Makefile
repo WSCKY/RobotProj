@@ -42,12 +42,12 @@ DEFS = -DSTM32 -DSTM32F7 -DSTM32F732xx -DUSE_HAL_DRIVER -DAPPLICATION_ADDRESS=0x
 # External Library path
 LIB_PATH := -L$(BuildPath)/rb \
             -L$(BuildPath)/ubx \
-	    -L$(BuildPath)/log \
+            -L$(BuildPath)/log \
             -L$(BuildPath)/bsp \
             -L$(BuildPath)/rtos \
             -L$(BuildPath)/stdrv \
             -L$(BuildPath)/kylink \
-	    -L$(BuildPath)/algorithm \
+            -L$(BuildPath)/algorithm 
 # External Libraries -lbsp
 LIBS := -lrb -lubx -llog -lkylink -lalgorithm -lstdrv -lrtos
 
@@ -159,7 +159,7 @@ clean:
 	-$(RM) $(BuildPath)/ $(OutPath)/
 	$(ECHO) 'Cleaned.'
 
-libraries:
+libraries: 
 	$(MAKE) -C middleware/rb BUILD=$(BuildPath)/rb
 	$(MAKE) -C middleware/ubx BUILD=$(BuildPath)/ubx
 	$(MAKE) -C middleware/log BUILD=$(BuildPath)/log
