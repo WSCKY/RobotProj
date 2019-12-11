@@ -176,6 +176,9 @@ BINARY := $(OutPath)/$(ProjName).bin
 flash: all
 	@st-flash --reset write $(BINARY) 0x08000000
 
+monitor:
+	@./../../tools/monitor/Debug/monitor
+
 post-build:
 	$(ECHO) ' Generating binary and Printing size information:'
 	$(OBJCOPY) -O binary $(OutPath)/$(ProjName).elf $(BINARY)
