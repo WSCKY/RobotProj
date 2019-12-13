@@ -36,8 +36,11 @@ INCS = -I$(TopPath)/startup \
 
 LD_INCS = -I$(TopPath)/sysconfig
 
+# get version from git
+__VERSION_STR__ := $(shell git rev-parse --abbrev-ref HEAD):$(shell git rev-parse --short HEAD)
+
 # Global definitions
-DEFS = -DSTM32 -DSTM32F7 -DSTM32F732xx -DUSE_HAL_DRIVER -DAPPLICATION_ADDRESS=0x08000000
+DEFS = -DSTM32 -DSTM32F7 -DSTM32F732xx -DUSE_HAL_DRIVER -D__FPU_PRESENT=1 -DAPPLICATION_ADDRESS=0x08000000 -D__VERSION_STR__=$(__VERSION_STR__)
 
 # External Library path
 LIB_PATH := -L$(BuildPath)/rb \
@@ -176,10 +179,15 @@ BINARY := $(OutPath)/$(ProjName).bin
 flash: all
 	@st-flash --reset write $(BINARY) 0x08000000
 
+jflash: all
+	@JLinkExe -CommanderScript f732.jlink
+
 monitor:
 	@./../../tools/monitor/Debug/monitor
 
 post-build:
+	$(ECHO) ' Generate disassembled listing for checking ...'
+	$(OBJDUMP) -S $(OutPath)/$(ProjName).elf > $(OutPath)/disasm.txt
 	$(ECHO) ' Generating binary and Printing size information:'
 	$(OBJCOPY) -O binary $(OutPath)/$(ProjName).elf $(BINARY)
 	$(SIZE) $(OutPath)/$(ProjName).elf
