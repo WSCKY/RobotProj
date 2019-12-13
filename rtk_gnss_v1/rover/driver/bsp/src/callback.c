@@ -80,3 +80,18 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *SpiHandle)
     imuif_rxtxcplt_callback(SpiHandle);
   }
 }
+
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if((IMU_INT1_PIN & GPIO_Pin) != RESET) {
+    imuif_int1_callback();
+  }
+  if((IMU_INT2_PIN & GPIO_Pin) != RESET) {
+    imuif_int2_callback();
+  }
+}
