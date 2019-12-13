@@ -6,6 +6,25 @@ osThreadId LEDThread1Handle, LEDThread2Handle;
 static void LED_Thread1(void const *argument);
 static void LED_Thread2(void const *argument);
 
+#define STR1(R) #R
+#define STR2(R) STR1(R)
+
+static const char SystemInfo[] =
+"\n  .--,       .--,"
+"\n ( (  \\.---./  ) )"
+"\n  '.__/o   o\\__.'"
+"\n     {=  ^  =}"               "\t\t\t"   "Integrated Navigation System based on SINS/GPS"
+"\n      >  -  <"                "\t\t\t"   "Author:  kyChu<kychu@qq.com>"
+"\n     /       \\"              "\t\t\t"   "Version: " STR2(__VERSION_STR__)
+"\n    //       \\\\"            "\t\t\t"   "Date:    " __DATE__
+"\n   //|   .   |\\\\"             "\t\t"   "Time:    " __TIME__
+"\n   \"'\\       /'\"_.-~^`'-."     "\t"   "Board:   Deepblue RTK NAV Board(2019 V1)"
+"\n      \\  _  /--'         `"      "\t"   "ALL RIGHTS RESERVED BY kyChu<kychu@qq.com>"
+"\n    ___)( )(___"
+"\n   (((__) (__)))"
+"\n"
+;
+
 void APP_StartThread(void const *argument)
 {
   /* Initialize LEDs */
@@ -14,7 +33,8 @@ void APP_StartThread(void const *argument)
   comif_init();
   log_init(comif_tx_string_util);
   osDelay(500);
-  ky_alert("system start.\n");
+  ky_alert("!!!KERNEL START!!!\n");
+  comif_tx_string_util(SystemInfo);
 
   osThreadDef(GNSS, gnss_navg_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(RTCM, rtcm_transfer_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
