@@ -299,6 +299,8 @@
 
 
 status_t icm42605_init(void);
-void icm42605_readfifo(void);
+status_t icm42605_read(IMU_RAW_6DOF *raw, IMU_UNIT_6DOF *unit, uint32_t timeout);
 
 #endif /* DRIVER_BSP_INC_ICM42605_H_ */
+
+/******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/
