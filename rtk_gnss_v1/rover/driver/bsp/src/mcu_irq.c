@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    driver/mcu_irq.c 
+  * @file    bsp/mcu_irq.c
   * @author  kyChu
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
-  *          peripherals interrupt service routine.
+  *          This file implements all exceptions handler for
+  *          Cortex-M7 Processor.
   ******************************************************************************
   */
 
