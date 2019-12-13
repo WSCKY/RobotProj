@@ -18,12 +18,14 @@ __PACK_BEGIN typedef struct {
   _3AxisRaw Acc;
   _3AxisRaw Gyr;
   _3AxisRaw Mag;
+  uint16_t Temp;
   uint32_t TS;
 } __PACK_END IMU_RAW;
 
 __PACK_BEGIN typedef struct {
   _3AxisRaw Acc;
   _3AxisRaw Gyr;
+  int16_t Temp;
   uint32_t TS;
 } __PACK_END IMU_RAW_6DOF;
 
@@ -43,6 +45,7 @@ __PACK_BEGIN typedef struct {
 __PACK_BEGIN typedef struct {
   _3AxisUnit Acc;
   _3AxisUnit Gyr;
+  float Temp;
   uint32_t TS;
 } __PACK_END IMU_UNIT_6DOF;
 
