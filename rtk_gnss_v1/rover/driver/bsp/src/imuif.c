@@ -63,8 +63,11 @@ void imuif_msp_init(SPI_HandleTypeDef *hspi)
   /*##-1- Enable peripherals and GPIO Clocks #################################*/
   /* Enable GPIO TX/RX clock */
   IMU_SPI_SCK_GPIO_CLK_ENABLE();
+  IMU_SPI_NSS_GPIO_CLK_ENABLE();
   IMU_SPI_MISO_GPIO_CLK_ENABLE();
   IMU_SPI_MOSI_GPIO_CLK_ENABLE();
+  IMU_INT1_GPIO_CLK_ENABLE();
+  IMU_INT2_GPIO_CLK_ENABLE();
   /* Enable SPI1 clock */
   IMU_SPI_CLK_ENABLE();
   /* Enable DMA clock */
@@ -79,16 +82,15 @@ void imuif_msp_init(SPI_HandleTypeDef *hspi)
   HAL_GPIO_Init(IMU_SPI_NSS_GPIO_PORT, &GPIO_InitStruct);
   HAL_GPIO_WritePin(IMU_SPI_NSS_GPIO_PORT, IMU_SPI_NSS_PIN, GPIO_PIN_SET);
 
-  GPIO_InitStruct.Pin       = GPIO_PIN_4;
-  GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
+  /* IMU INT1 GPIO pin configuration */
+  GPIO_InitStruct.Pin       = IMU_INT1_PIN;
+  GPIO_InitStruct.Mode      = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull      = GPIO_NOPULL;
-  GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-  GPIO_InitStruct.Pin       = GPIO_PIN_0;
-  GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull      = GPIO_NOPULL;
-  GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(IMU_INT1_GPIO_PORT, &GPIO_InitStruct);
+
+  /* IMU INT2 GPIO pin configuration */
+  GPIO_InitStruct.Pin       = IMU_INT2_PIN;
+  HAL_GPIO_Init(IMU_INT2_GPIO_PORT, &GPIO_InitStruct);
 
   /* SPI SCK GPIO pin configuration */
   GPIO_InitStruct.Pin       = IMU_SPI_SCK_PIN;
@@ -158,6 +160,14 @@ void imuif_msp_init(SPI_HandleTypeDef *hspi)
   /* NVIC configuration for DMA transfer complete interrupt (IMU_SPI_RX) */
   HAL_NVIC_SetPriority(IMU_SPI_DMA_RX_IRQn, INT_PRIO_IMUIF_DMARX, 0);
   HAL_NVIC_EnableIRQ(IMU_SPI_DMA_RX_IRQn);
+
+  /* Enable and set EXTI line Interrupt priority for IMU INT1 */
+  HAL_NVIC_SetPriority(IMU_INT1_GPIO_EXTI_IRQn, INT_PRIO_IMUIF_INT1, 0);
+  HAL_NVIC_EnableIRQ(IMU_INT1_GPIO_EXTI_IRQn);
+
+  /* Enable and set EXTI line Interrupt priority for IMU INT2 */
+  HAL_NVIC_SetPriority(IMU_INT2_GPIO_EXTI_IRQn, INT_PRIO_IMUIF_INT2, 0);
+  HAL_NVIC_EnableIRQ(IMU_INT2_GPIO_EXTI_IRQn);
 }
 
 void imuif_msp_deinit(SPI_HandleTypeDef *hspi)
@@ -206,3 +216,6 @@ void IMU_SPI_DMA_RX_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(IMU_SpiHandle.hdmarx);
 }
+
+__weak void imuif_int1_callback(void) {}
+__weak void imuif_int2_callback(void) {}
