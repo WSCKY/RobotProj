@@ -1,0 +1,8 @@
+Device STM32F732RE
+IF     SWD
+Speed  400KHz
+loadbin output/rtk_rover.bin, 0x08000000
+rx 200
+g
+qc
+
