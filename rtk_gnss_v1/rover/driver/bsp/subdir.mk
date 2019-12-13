@@ -11,6 +11,7 @@ C_SRCS += \
 ./driver/bsp/src/ec20.c \
 ./driver/bsp/src/hal_msp.c \
 ./driver/bsp/src/mcu_irq.c \
+./driver/bsp/src/gpio_irq.c \
 ./driver/bsp/src/rtcmif.c \
 ./driver/bsp/src/timebase.c \
 ./driver/bsp/src/ubloxa.c \
@@ -27,6 +28,7 @@ $(BuildPath)/driver/bsp/comif.o \
 $(BuildPath)/driver/bsp/ec20.o \
 $(BuildPath)/driver/bsp/hal_msp.o \
 $(BuildPath)/driver/bsp/mcu_irq.o \
+$(BuildPath)/driver/bsp/gpio_irq.o \
 $(BuildPath)/driver/bsp/rtcmif.o \
 $(BuildPath)/driver/bsp/timebase.o \
 $(BuildPath)/driver/bsp/ubloxa.o \
@@ -43,6 +45,7 @@ $(BuildPath)/driver/bsp/comif.d \
 $(BuildPath)/driver/bsp/ec20.d \
 $(BuildPath)/driver/bsp/hal_msp.d \
 $(BuildPath)/driver/bsp/mcu_irq.d \
+$(BuildPath)/driver/bsp/gpio_irq.d \
 $(BuildPath)/driver/bsp/rtcmif.d \
 $(BuildPath)/driver/bsp/timebase.d \
 $(BuildPath)/driver/bsp/ubloxa.d \
