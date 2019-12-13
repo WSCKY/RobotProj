@@ -11,14 +11,13 @@
 
 //static void rb_tx_task(void const *argument);
 //static void rb_rx_task(void const *argument);
-extern float imu_temp;
-extern uint16_t imu_ts;
-extern int16_t imu_az;
 //uint16_t last_ts = 0;
 //uint16_t delta_ts = 0;
+IMU_RAW_6DOF Raw;
+IMU_UNIT_6DOF Unit;
+
 void test_case_task(void const *argument)
 {
-  uint32_t cnt = 0;
   (void) argument;
   ky_info("test case task start.\n");
   osDelay(500);
@@ -31,16 +30,33 @@ void test_case_task(void const *argument)
 //  osThreadDef(RB_RX, rb_rx_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 //  if(osThreadCreate(osThread(RB_TX), NULL) == NULL) dbg_str("rb tx test task failed.\n");
 //  if(osThreadCreate(osThread(RB_RX), NULL) == NULL) dbg_str("rb rx test task failed.\n");
-
+  uint32_t ts = 0, tn = 0, ts_cnt = 0;
+  uint32_t last_t = 0, delta_t = 0;
   for(;;) {
-    osDelay(5);
-    icm42605_readfifo();
+//    osDelay(1000);
 //    delta_ts = imu_ts - last_ts;
 //    last_ts = imu_ts;
-    cnt ++;
-    if(cnt >= 200) {
-      cnt = 0;
-      ky_info("temp=%2.2f, ts=%d, ac=%2.2f, [%2d%%]\n", imu_temp, imu_ts, imu_az*0.002392578125f, osGetCPUUsage());
+    if(icm42605_read(&Raw, &Unit, osWaitForever) ==status_ok) {
+    if(Raw.TS > last_t)
+      delta_t = Raw.TS - last_t;
+    else
+    	delta_t = 0x10000 - last_t + Raw.TS;
+    last_t = Raw.TS;
+
+    tn = xTaskGetTickCountFromISR();
+      if((tn - ts) > 50) {
+        ts = tn;
+        if(delta_t != 1000) {
+        	ky_info("t_err: ts:%d, delta:%d  [%2d%%]\n", Raw.TS, delta_t, osGetCPUUsage());
+        } else {
+          ts_cnt ++;
+          if(ts_cnt >= 20) {
+        	  ts_cnt = 0;
+        	  ky_info("ax: %2.2f, ay: %2.2f, az: %2.2f, %2.2fC, ts:%d  [%2d%%]\n", \
+        	          		Unit.Acc.X, Unit.Acc.Y, Unit.Acc.Z, Unit.Temp, delta_t, osGetCPUUsage());
+          }
+        }
+      }
     }
   }
 }
