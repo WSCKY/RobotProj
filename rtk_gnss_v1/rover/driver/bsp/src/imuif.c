@@ -13,6 +13,11 @@ static SPI_HandleTypeDef IMU_SpiHandle;
 static DMA_HandleTypeDef hdma_tx;
 static DMA_HandleTypeDef hdma_rx;
 
+#if FREERTOS_ENABLED
+static osMutexId if_mutex = NULL;
+#else
+#endif /* FREERTOS_ENABLED */
+
 #define IMU_SPI_CS_SELECT()    HAL_GPIO_WritePin(IMU_SPI_NSS_GPIO_PORT, IMU_SPI_NSS_PIN, GPIO_PIN_RESET)
 #define IMU_SPI_CS_DESELECT()  HAL_GPIO_WritePin(IMU_SPI_NSS_GPIO_PORT, IMU_SPI_NSS_PIN, GPIO_PIN_SET)
 
@@ -34,20 +39,42 @@ status_t imuif_init(void)
   IMU_SpiHandle.Init.NSS               = SPI_NSS_SOFT;
 
   if(HAL_SPI_Init(&IMU_SpiHandle) != HAL_OK) return status_error; /* Initialization Error */
+
+#if FREERTOS_ENABLED
+  /* Create the mutex  */
+  osMutexDef(IMUIFMutex);
+  if_mutex = osMutexCreate(osMutex(IMUIFMutex));
+  if(if_mutex == NULL) return status_error;
+#else
+#endif /* FREERTOS_ENABLED */
+
   return status_ok;
 }
 
 status_t imuif_txrx_bytes(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
 {
   status_t ret;
+#if FREERTOS_ENABLED
+  osMutexWait(if_mutex, osWaitForever);
+#else
+#endif /* FREERTOS_ENABLED */
   IMU_SPI_CS_SELECT();
   ret = (status_t)HAL_SPI_TransmitReceive(&IMU_SpiHandle, pTxData, pRxData, Size, Size);
   IMU_SPI_CS_DESELECT();
+#if FREERTOS_ENABLED
+  osMutexRelease(if_mutex);
+#else
+#endif /* FREERTOS_ENABLED */
   return ret;
 }
 
 status_t imuif_txrx_bytes_dma(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
 {
+#if FREERTOS_ENABLED
+  portBASE_TYPE taskWoken = pdFALSE;
+  xSemaphoreTakeFromISR(if_mutex, &taskWoken);
+#else
+#endif /* FREERTOS_ENABLED */
   IMU_SPI_CS_SELECT();
   return (status_t)HAL_SPI_TransmitReceive_DMA(&IMU_SpiHandle, pTxData, pRxData, Size);
 }
@@ -55,6 +82,11 @@ status_t imuif_txrx_bytes_dma(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
 void imuif_rxtxcplt_callback(SPI_HandleTypeDef *hspi)
 {
   IMU_SPI_CS_DESELECT();
+#if FREERTOS_ENABLED
+  portBASE_TYPE taskWoken = pdFALSE;
+  xSemaphoreGiveFromISR(if_mutex, &taskWoken);
+#else
+#endif /* FREERTOS_ENABLED */
 }
 
 void imuif_msp_init(SPI_HandleTypeDef *hspi)
