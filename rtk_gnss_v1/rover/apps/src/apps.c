@@ -25,6 +25,8 @@ static const char SystemInfo[] =
 "\n"
 ;
 
+#define TEST_CASE_TASK_ENABLE                    (0)
+
 void APP_StartThread(void const *argument)
 {
   /* Initialize LEDs */
@@ -36,17 +38,26 @@ void APP_StartThread(void const *argument)
   ky_alert("!!!KERNEL START!!!\n");
   comif_tx_string_util(SystemInfo);
 
-  osThreadDef(GNSS, gnss_navg_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
-  osThreadDef(RTCM, rtcm_transfer_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
-  osThreadDef(TEST, test_case_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8);
-  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
-  osThreadDef(LED_BLUE, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadDef(LED_GREEN, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadDef(SINS, att_est_q_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8); // stack size = 1KB
+  osThreadDef(GNSS, gnss_navg_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
+  osThreadDef(RTCM, rtcm_transfer_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
+#if (TEST_CASE_TASK_ENABLE)
+  osThreadDef(TEST, test_case_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8); // stack size = 1KB
+#endif /* (TEST_CASE_TASK_ENABLE) */
+  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
 
+  if(osThreadCreate(osThread(SINS), NULL) == NULL) ky_err("sins task create failed.\n");
   if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err("gnss task create failed.\n");
-  if(osThreadCreate(osThread(RTCM), NULL) == NULL) ky_err("rtcm transfer task failed.\n");
+  if(osThreadCreate(osThread(RTCM), NULL) == NULL) ky_err("rtcm task create failed.\n");
+#if (TEST_CASE_TASK_ENABLE)
   if(osThreadCreate(osThread(TEST), NULL) == NULL) ky_err("test task create failed.\n");
-  if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err("mesg transfer task failed.\n");
+#endif /* (TEST_CASE_TASK_ENABLE) */
+  if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err("mesg task create failed.\n");
+
+  /* LED INDICATOR TASK */
+  osThreadDef(LED_BLUE, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE); // stack size = 128B
+  osThreadDef(LED_GREEN, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE); // stack size = 128B
+
   LEDThread1Handle = osThreadCreate(osThread(LED_BLUE), NULL); if(LEDThread1Handle == NULL) ky_err("led1 task create failed.\n");
   LEDThread2Handle = osThreadCreate(osThread(LED_GREEN), NULL); if(LEDThread2Handle == NULL) ky_err("led2 task create failed.\n");
 
