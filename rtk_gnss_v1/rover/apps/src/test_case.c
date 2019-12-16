@@ -13,8 +13,8 @@
 //static void rb_rx_task(void const *argument);
 //uint16_t last_ts = 0;
 //uint16_t delta_ts = 0;
-IMU_RAW_6DOF Raw;
-IMU_UNIT_6DOF Unit;
+static IMU_RAW_6DOF Raw;
+static IMU_UNIT_6DOF Unit;
 
 void test_case_task(void const *argument)
 {
@@ -52,8 +52,9 @@ void test_case_task(void const *argument)
           ts_cnt ++;
           if(ts_cnt >= 20) {
         	  ts_cnt = 0;
-        	  ky_info("ax: %2.2f, ay: %2.2f, az: %2.2f, %2.2fC, ts:%d  [%2d%%]\n", \
-        	          		Unit.Acc.X, Unit.Acc.Y, Unit.Acc.Z, Unit.Temp, delta_t, osGetCPUUsage());
+/*        	  ky_info("ax: %2.2f, ay: %2.2f, az: %2.2f, %2.2fC, ts:%d  [%2d%%]\n", \
+        	          		Unit.Acc.X, Unit.Acc.Y, Unit.Acc.Z, Unit.Temp, delta_t, osGetCPUUsage());*/
+        	  ky_info("gx: %d, gy: %d, gz: %d  [%2d%%]\n", Raw.Gyr.X, Raw.Gyr.Y, Raw.Gyr.Z, osGetCPUUsage());
           }
         }
       }
