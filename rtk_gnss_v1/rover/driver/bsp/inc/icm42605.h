@@ -296,10 +296,20 @@
 /* --------------------------- BANK2 --------------------------- */
 
 /* --------------------------- BANK4 --------------------------- */
-
+#define REG_OFFSET_USER0                         0x77
+#define REG_OFFSET_USER1                         0x78
+#define REG_OFFSET_USER2                         0x79
+#define REG_OFFSET_USER3                         0x7A
+#define REG_OFFSET_USER4                         0x7B
+#define REG_OFFSET_USER5                         0x7C
+#define REG_OFFSET_USER6                         0x7D
+#define REG_OFFSET_USER7                         0x7E
+#define REG_OFFSET_USER8                         0x7F
 
 status_t icm42605_init(void);
 status_t icm42605_read(IMU_RAW_6DOF *raw, IMU_UNIT_6DOF *unit, uint32_t timeout);
+
+status_t icm42605_gyr_offset(_3AxisUnit *gyr_off);
 
 #endif /* DRIVER_BSP_INC_ICM42605_H_ */
 

@@ -10,9 +10,12 @@
 
 #define IMU_CACHE_SIZE                           17
 
+#define IMU_GYR_OFFSET_MIN_VAL                   (0.03125f)
+#define IMU_GYR_OFFSET_MAX_VAL                   (64.0f)
+#define IMU_GYR_OFFSET_RESOLUTION                (0.03125f)
+
 static uint32_t icm42605_init_flag = 0;
 #if FREERTOS_ENABLED
-static osMutexId if_mutex = NULL;
 static osSemaphoreId imu_semaphore;
 static uint8_t *imu_tx_buffer = NULL;
 static uint8_t *imu_rx_buffer = NULL;
@@ -37,11 +40,6 @@ status_t icm42605_init(void)
   imu_tx_buffer = kmm_alloc(IMU_CACHE_SIZE); if(imu_tx_buffer == NULL) return status_nomem;
   imu_rx_buffer = kmm_alloc(IMU_CACHE_SIZE); if(imu_rx_buffer == NULL) return status_nomem;
   imu_raw_data = kmm_alloc(sizeof(IMU_RAW_6DOF)); if(imu_raw_data == NULL) return status_nomem;
-
-  /* Create the mutex  */
-  osMutexDef(IMUIFMutex);
-  if_mutex = osMutexCreate(osMutex(IMUIFMutex));
-  if(if_mutex == NULL) return status_error;
 
   /* Define used semaphore */
   osSemaphoreDef(IMU_SEM);
@@ -186,14 +184,8 @@ status_t icm42605_read(IMU_RAW_6DOF *raw, IMU_UNIT_6DOF *unit, uint32_t timeout)
 
     *raw = *p;
 
-#if FREERTOS_ENABLED
-    osMutexWait(if_mutex, osWaitForever);
-#endif /* FREERTOS_ENABLED */
     imu_tx_buffer[0] = REG_FIFO_DATA | 0x80;
     imuif_txrx_bytes_dma(imu_tx_buffer, imu_rx_buffer, 16 +1);
-#if FREERTOS_ENABLED
-    osMutexRelease(if_mutex);
-#endif /* FREERTOS_ENABLED */
 
     unit->Acc.X = p->Acc.X * 0.002392578125f;
     unit->Acc.Y = p->Acc.Y * 0.002392578125f;
@@ -210,6 +202,48 @@ status_t icm42605_read(IMU_RAW_6DOF *raw, IMU_UNIT_6DOF *unit, uint32_t timeout)
   }
 
   return status_timeout;
+}
+
+status_t icm42605_gyr_offset(_3AxisUnit *gyr_off)
+{
+  int offx = 0, offy = 0, offz = 0, org = 0;
+
+  /* select BANK4 */
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_REG_BANK_SEL, IMU_BANK_SEL_4) );
+
+  /* get origin offset */
+  IMU_DRV_CHECK_ASSERT( imu_read_reg(REG_OFFSET_USER0, 5) );
+
+  /* GYRO_X_OFFSET */
+  org = (((uint16_t)imu_rx_buffer[2] & 0x07) << 8) | imu_rx_buffer[1];
+  if(imu_rx_buffer[2] & 0x08) org = -org;
+  offx = org - (int)gyr_off->X / IMU_GYR_OFFSET_RESOLUTION;
+  if(offx < 0) offx |= 0x08000;
+
+  /* GYRO_Y_OFFSET */
+  org = ((((uint16_t)imu_rx_buffer[2] & 0x70) >> 4) << 8) | imu_rx_buffer[3];
+  if(imu_rx_buffer[2] & 0x80) org = -org;
+  offy = org - (int)gyr_off->Y / IMU_GYR_OFFSET_RESOLUTION;
+  if(offy < 0) offy |= 0x08000;
+
+  /* GYRO_Z_OFFSET */
+  org = (((uint16_t)imu_rx_buffer[5] & 0x07) << 8) | imu_rx_buffer[4];
+  if(imu_rx_buffer[5] & 0x08) org = -org;
+  offz = org - (int)gyr_off->Z / IMU_GYR_OFFSET_RESOLUTION;
+  if(offz < 0) offz |= 0x08000;
+
+  /* save ACCEL_X_OFFUSER[11:8] */
+  org = imu_rx_buffer[5];
+
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_OFFSET_USER0, (offx & 0xFF)) );
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_OFFSET_USER1, ((offx >> 8) & 0x0F) | ((offy >> 4) & 0xF0)) );
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_OFFSET_USER2, (offy & 0xFF)) );
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_OFFSET_USER3, (offz & 0xFF)) );
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_OFFSET_USER4, ((offz >> 8) & 0x0F) | (org & 0x00F0)) );
+
+  /* select BANK0 */
+  IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_REG_BANK_SEL, IMU_BANK_SEL_0) );
+  return status_ok;
 }
 
 void imuif_int1_callback(void)
@@ -230,29 +264,17 @@ static status_t imu_read_reg(uint8_t reg, uint8_t num)
 {
   status_t ret = status_error;
   if(num > IMU_CACHE_SIZE - 1) return ret;
-#if FREERTOS_ENABLED
-  osMutexWait(if_mutex, osWaitForever);
-#endif /* FREERTOS_ENABLED */
   imu_tx_buffer[0] = reg | 0x80;
   ret = imuif_txrx_bytes(imu_tx_buffer, imu_rx_buffer, num +1);
-#if FREERTOS_ENABLED
-  osMutexRelease(if_mutex);
-#endif /* FREERTOS_ENABLED */
   return ret;
 }
 
 static status_t imu_write_reg(uint8_t reg, uint8_t val)
 {
   status_t ret = status_error;
-#if FREERTOS_ENABLED
-  osMutexWait(if_mutex, osWaitForever);
-#endif /* FREERTOS_ENABLED */
   imu_tx_buffer[0] = reg;
   imu_tx_buffer[1] = val;
   ret = imuif_txrx_bytes(imu_tx_buffer, imu_rx_buffer, 2);
-#if FREERTOS_ENABLED
-  osMutexRelease(if_mutex);
-#endif /* FREERTOS_ENABLED */
   return ret;
 }
 
