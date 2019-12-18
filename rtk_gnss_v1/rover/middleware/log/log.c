@@ -30,7 +30,7 @@ static osMutexId logMutex = NULL;
 
 status_t log_init(log_put_t ptx)
 {
-  log_cache = kmm_alloc(80);
+  log_cache = kmm_alloc(128);
   if(log_cache == NULL) return status_nomem;
 
   /* Create the mutex  */
