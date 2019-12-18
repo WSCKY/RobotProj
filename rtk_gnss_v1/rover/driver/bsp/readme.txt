@@ -14,3 +14,5 @@ RTCM IF
 USART3 PB10(TX)/PB11(RX)                         DMA1 CHANNEL4 Stream1(RX)/3(TX)
 IMU IF
 SPI1 PA4(NSS)/PA5(SCK)/PA6(MISO)/PA7(MOSI)       DMA2 CHANNEL3 Stream0(RX)/3(TX)
+MAG IF
+IIC1 PB8(SCL)/PB9(SDA)                           DMA1 CHANNEL1 Stream0(RX)/7(TX)
