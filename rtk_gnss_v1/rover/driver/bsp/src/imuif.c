@@ -251,3 +251,5 @@ void IMU_SPI_DMA_RX_IRQHandler(void)
 
 __weak void imuif_int1_callback(void) {}
 __weak void imuif_int2_callback(void) {}
+
+/******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/
