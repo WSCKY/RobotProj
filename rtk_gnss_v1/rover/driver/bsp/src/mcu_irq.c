@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    bsp/mcu_irq.c
-  * @author  kyChu
+  * @author  kyChu<kychu@qq.com>
   * @brief   Main Interrupt Service Routines.
   *          This file implements all exceptions handler for
   *          Cortex-M7 Processor.
