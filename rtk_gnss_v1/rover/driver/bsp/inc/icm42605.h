@@ -12,8 +12,10 @@
 
 #if FREERTOS_ENABLED
 #define imu_delay                                osDelay
+#define imu_ticks                                xTaskGetTickCountFromISR
 #else
 #define imu_delay                                HAL_Delay
+#define imu_ticks                                HAL_GetTick
 #endif /* FREERTOS_ENABLE */
 
 /* --------------------------- BANK0 --------------------------- */
@@ -307,6 +309,7 @@
 #define REG_OFFSET_USER8                         0x7F
 
 status_t icm42605_init(void);
+status_t icm42605_selftest(IMU_RAW_6DOF *imu_raw, uint8_t *result);
 status_t icm42605_read(IMU_RAW_6DOF *raw, IMU_UNIT_6DOF *unit, uint32_t timeout);
 
 status_t icm42605_gyr_offset(_3AxisUnit *gyr_off);
