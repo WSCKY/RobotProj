@@ -11,6 +11,8 @@
 #include "imuif.h"
 #include "icm42605.h"
 
+#include "magif.h"
+
 #include "usb_cdcif.h"
 
 #endif /* __DRIVERS_H */
