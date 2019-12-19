@@ -49,6 +49,7 @@
 #define I2Cx_DMA_RX_IRQHandler          DMA1_Stream0_IRQHandler
 
 status_t magif_init(void);
+status_t magif_check_ready(void);
 status_t magif_tx_bytes_dma(uint16_t DevAddress, uint8_t *pData, uint16_t Size);
 status_t magif_read_mem_dma(uint16_t DevAddress, uint16_t MemAddress, uint8_t *pData, uint16_t Size);
 status_t magif_write_mem_dma(uint16_t DevAddress, uint16_t MemAddress, uint8_t *pData, uint16_t Size);

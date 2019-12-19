@@ -13,6 +13,8 @@ static I2C_HandleTypeDef MAG_I2cHandle;
 static DMA_HandleTypeDef hdma_tx;
 static DMA_HandleTypeDef hdma_rx;
 
+static uint32_t magif_initialized = 0;
+
 #if FREERTOS_ENABLED
 static osMutexId if_mutex = NULL;
 #else
@@ -21,10 +23,12 @@ static osMutexId if_mutex = NULL;
 /* I2C TIMING Register define when I2C clock source is PCLK1 */
 /* I2C TIMING is calculated in case of the I2C Clock source is the PCLK1 = 54 MHz */
 /* This example use TIMING to 0x00601B5E to reach 400 KHz speed (Rise time = 20ns, Fall time = 20ns) */
-#define I2C_TIMING      0x00601B5E
+#define I2C_TIMING      0x00601B5E /* 400KHz */
+//#define I2C_TIMING      0x1070699D /* 100KHz */
 
 status_t magif_init(void)
 {
+  if(magif_initialized != 0) return status_ok;
   /*##-1- Configure the I2C peripheral ######################################*/
   MAG_I2cHandle.Instance              = MAG_I2C;
   MAG_I2cHandle.Init.Timing           = I2C_TIMING;
@@ -48,6 +52,14 @@ status_t magif_init(void)
 #else
 #endif /* FREERTOS_ENABLED */
 
+  magif_initialized = 1;
+  return status_ok;
+}
+
+status_t magif_check_ready(void)
+{
+  if(HAL_I2C_GetState(&MAG_I2cHandle) != HAL_I2C_STATE_READY)
+    return status_busy;
   return status_ok;
 }
 
