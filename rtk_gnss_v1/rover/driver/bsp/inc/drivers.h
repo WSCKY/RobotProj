@@ -12,6 +12,7 @@
 #include "icm42605.h"
 
 #include "magif.h"
+#include "ist83xx.h"
 
 #include "usb_cdcif.h"
 
