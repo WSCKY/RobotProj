@@ -18,6 +18,14 @@
 
 #define ABS(x)                         (((x) > 0) ? (x) : (-(x)))
 
+typedef struct {
+  float X, Y;
+} Vector2D;
+
+typedef struct {
+  float X, Y, Z;
+} Vector3D;
+
 #endif /* __ALGORITHM_H */
 
 /******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/
