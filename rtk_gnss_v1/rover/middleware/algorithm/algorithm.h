@@ -18,6 +18,9 @@
 
 #define ABS(x)                         (((x) > 0) ? (x) : (-(x)))
 
+#define DEG2RAD(deg)                   ((deg) * 0.017453292519943295769236907684886f)
+#define RAD2DEG(rad)                   ((rad) * 57.295779513082320876798154814105f)
+
 typedef struct {
   float X, Y;
 } Vector2D;
