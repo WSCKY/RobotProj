@@ -41,7 +41,7 @@ void APP_StartThread(void const *argument)
 #if (TEST_CASE_TASK_ENABLE)
   osThreadDef(TEST, test_case_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8); // stack size = 1KB
 #endif /* (TEST_CASE_TASK_ENABLE) */
-  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
+  osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4); // stack size = 512B
 
   if(osThreadCreate(osThread(SINS), NULL) == NULL) ky_err("sins task create failed.\n");
   if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err("gnss task create failed.\n");
