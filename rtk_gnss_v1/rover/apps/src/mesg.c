@@ -7,18 +7,34 @@ static KYLINK_CORE_HANDLE kylink_msg;
 static kyLinkPackageDef tx_packet;
 
 /* Semaphore to signal incoming packets */
-osSemaphoreId msg_xSemaphore = NULL;
+//osSemaphoreId msg_xSemaphore = NULL;
+static QueueHandle_t com_msg_q = NULL;
 
-static ubx_npvts_t npvts_pack;
-static ubx_npvts_t npvts_pack_1;
+//static ubx_npvts_t npvts_pack;
+//static ubx_npvts_t npvts_pack_1;
 
-static double computeAzimuth(double lat1, double lon1, double lat2, double lon2);
-double test_val = 0;
+//static double computeAzimuth(double lat1, double lon1, double lat2, double lon2);
+//double test_val = 0;
 void mesg_send_task(void const *argument)
 {
+  COM_MSG_DEF *msg = NULL;
+//  portBASE_TYPE xTaskWokenByReceive = pdFALSE;
+
   if(cdcif_init() != status_ok) {
     ky_err("usb cdc init failed.\n");
-    ky_err("mesg module start failed, exit!\n");
+    ky_err("mesg module start failed, EXIT!\n");
+    vTaskDelete(NULL);
+  }
+
+  com_msg_q = xQueueCreate(10, sizeof(COM_MSG_DEF));
+  if(com_msg_q == NULL) {
+    ky_err("creates queue instance failed, EXIT!\n");
+    vTaskDelete(NULL);
+  }
+
+  msg = kmm_alloc(sizeof(COM_MSG_DEF));
+  if(msg == NULL) {
+    ky_err("alloc msg memory failed, EXIT!\n");
     vTaskDelete(NULL);
   }
 
@@ -28,26 +44,46 @@ void mesg_send_task(void const *argument)
   kyLinkConfigTxFunc(&kylink_msg, cdcif_tx_bytes);
   kyLinkInitPackage(&tx_packet);
 
-  tx_packet.FormatData.msg_id = TYPE_PVTS_Info_Resp;
-  tx_packet.FormatData.length = sizeof(ubx_npvts_t);
+//  tx_packet.FormatData.msg_id = TYPE_PVTS_Info_Resp;
+//  tx_packet.FormatData.length = sizeof(ubx_npvts_t);
 
-  osSemaphoreDef(SEM);
-  msg_xSemaphore = osSemaphoreCreate(osSemaphore(SEM), 1 );
+//  osSemaphoreDef(SEM);
+//  msg_xSemaphore = osSemaphoreCreate(osSemaphore(SEM), 1 );
 
   for(;;) {
-    if(osSemaphoreWait( msg_xSemaphore, osWaitForever)==osOK) {
-      npvts_pack = *get_npvts_a();
-      npvts_pack_1 = *get_npvts_b();
-      test_val = computeAzimuth(npvts_pack.lat, npvts_pack.lon, npvts_pack_1.lat, npvts_pack_1.lon);
-      npvts_pack.head_veh = test_val * 1e5;
-      tx_packet.FormatData.PacketData.TypeData.pvts = npvts_pack;
+//    if(osSemaphoreWait( msg_xSemaphore, osWaitForever)==osOK) {
+//      npvts_pack = *get_npvts_a();
+//      npvts_pack_1 = *get_npvts_b();
+//      test_val = computeAzimuth(npvts_pack.lat, npvts_pack.lon, npvts_pack_1.lat, npvts_pack_1.lon);
+//      npvts_pack.head_veh = test_val * 1e5;
+//      tx_packet.FormatData.PacketData.TypeData.pvts = npvts_pack;
+//      SendTxPacket(&kylink_msg, &tx_packet);
+//    }
+//    if(xQueueReceiveFromISR(com_msg_q, msg, &xTaskWokenByReceive) == pdPASS) {
+    if(xQueueReceive(com_msg_q, msg, osWaitForever) == pdPASS) {
+      tx_packet.FormatData.length = msg->len;
+      tx_packet.FormatData.msg_id = msg->type;
+      ( void ) memcpy( ( void * ) &tx_packet.FormatData.PacketData.RawData[0], ( void * ) msg->pointer, ( size_t ) msg->len );
+      // indicate read operation.
+      *((msg_wr_state *)(msg->state)) = msg_read;
+//      for(int index = 0; index < msg->len; index ++) {
+//        tx_packet.FormatData.PacketData.RawData[index] = ((uint8_t *)msg->pointer)[index];
+//      }
       SendTxPacket(&kylink_msg, &tx_packet);
     }
   }
 }
 
-#define DEG_TO_RAD 0.017453292519943295769236907684886f
-#define RAD_TO_DEG 57.295779513082320876798154814105f
+void mesg_send_mesg(void *msg)
+{
+//  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  if(com_msg_q == NULL) return;
+//  xQueueSendFromISR(com_msg_q, msg, &xHigherPriorityTaskWoken);
+  xQueueSend(com_msg_q, msg, osWaitForever);
+}
+
+//#define DEG_TO_RAD 0.017453292519943295769236907684886f
+//#define RAD_TO_DEG 57.295779513082320876798154814105f
 
 //static double computeAzimuth(double lat1, double lon1, double lat2, double lon2) {
 //    double result = 0.0;
@@ -84,14 +120,14 @@ void mesg_send_task(void const *argument)
 //}
 
 // direction: P1 ----> P2
-static double computeAzimuth(double lat1, double lon1, double lat2, double lon2) {
-  if(lon2 == lon1) {
-    if(lat2 > lat1)
-      return 0.0f;
-    else
-      return 180.0f;
-  }
-  float alpha = 90.0f - atanf((lat2 - lat1) / (lon2 - lon1)) * RAD_TO_DEG;
-  if(lon2 > lon1) return alpha;
-  return (180.0f + alpha);
-}
+//static double computeAzimuth(double lat1, double lon1, double lat2, double lon2) {
+//  if(lon2 == lon1) {
+//    if(lat2 > lat1)
+//      return 0.0f;
+//    else
+//      return 180.0f;
+//  }
+//  float alpha = 90.0f - atanf((lat2 - lat1) / (lon2 - lon1)) * RAD_TO_DEG;
+//  if(lon2 > lon1) return alpha;
+//  return (180.0f + alpha);
+//}
