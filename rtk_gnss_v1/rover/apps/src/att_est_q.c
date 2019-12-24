@@ -8,6 +8,9 @@
 #include "att_est_q.h"
 #include "quat_est.h"
 
+#include "mesg.h"
+#include "kyLink.h"
+
 #include "cpu_utils.h"
 
 //static const char *TAG = "SINS";
@@ -17,6 +20,10 @@ static Quat_T est_q = {1, 0, 0, 0};
 
 static IMU_RAW_6DOF imu_raw;
 static IMU_UNIT_6DOF imu_unit;
+
+static COM_MSG_DEF msg_quat;
+static Quat_T msg_quat_store;
+static msg_wr_state msg_quat_flag = msg_read;
 
 //static _3AxisUnit gyr_off;
 static uint32_t imu_selftest_done = 0;
@@ -31,7 +38,7 @@ void att_est_q_task(void const *argument)
   float delta_t = 1e-3;
   uint32_t last_t_us = 0, delta_t_us = 0;
 
-  uint32_t tn, ts = 0, tcnt = 0;
+  uint32_t time_now, time_start = 0;//, tcnt = 0;
 
   ky_info("att est task start.\n");
   osDelay(100);
@@ -84,19 +91,29 @@ void att_est_q_task(void const *argument)
       Quat2Euler(&est_q, &est_e);
 
       /* TEST CODE */
-      tn = xTaskGetTickCountFromISR();
-      if((tn - ts) > 500) {
-        ts = tn;
-        tcnt ++;
-        led_on(LED_BLUE);
-        if(tcnt & 1)
+      time_now = xTaskGetTickCountFromISR();
+      if((time_now - time_start) > 10) {
+        time_start = time_now;
+
+        if(msg_quat_flag == msg_read) {
+          msg_quat_flag = msg_write;
+          msg_quat_store = est_q;
+          msg_quat.len = sizeof(Quat_T);
+          msg_quat.type = TYPE_QUAT_Info_Resp;
+          msg_quat.state = &msg_quat_flag;
+          msg_quat.pointer = &msg_quat_store;
+          mesg_send_mesg(&msg_quat);
+        }
+//        tcnt ++;
+//        led_on(LED_BLUE);
+//        if(tcnt & 1)
 //          ky_info("g:%d, %d, %d\na:%d, %d, %d\n", imu_raw.Gyr.X, imu_raw.Gyr.Y, imu_raw.Gyr.Z
 //                                                , imu_raw.Acc.X, imu_raw.Acc.Y, imu_raw.Acc.Z);
 //        	ky_info("g:%2.2f, %2.2f, %2.2f; a:%2.2f, %2.2f, %2.2f\n", imu_unit.Gyr.X, imu_unit.Gyr.Y, imu_unit.Gyr.Z
 //                                                                  , imu_unit.Acc.X, imu_unit.Acc.Y, imu_unit.Acc.Z);
 //        else
-          ky_info("pitch: %2.2f, roll: %2.2f, yaw: %2.2f  [%2d%%]\n", est_e.pitch, est_e.roll, est_e.yaw, osGetCPUUsage());
-        led_off(LED_BLUE);
+//          ky_info("pitch: %2.2f, roll: %2.2f, yaw: %2.2f  [%2d%%]\n", est_e.pitch, est_e.roll, est_e.yaw, osGetCPUUsage());
+//        led_off(LED_BLUE);
 //        ky_info("pitch: %2.2f, roll: %2.2f, yaw: %2.2f -%d-  [%2d%%]\n", est_e.pitch, est_e.roll, est_e.yaw, gyr_peace_flag, osGetCPUUsage());
       }
     }
