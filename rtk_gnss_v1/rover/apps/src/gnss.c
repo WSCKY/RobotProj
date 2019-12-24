@@ -222,7 +222,7 @@ static void ubx_decode_task(void const *argument)
 }
 /*
 */
-extern osSemaphoreId msg_xSemaphore;
+//extern osSemaphoreId msg_xSemaphore;
 /*
 */
 static void ubxa_decode_callback(ubx_struct_t *p)
@@ -232,9 +232,9 @@ static void ubxa_decode_callback(ubx_struct_t *p)
   } else if(p->group == UBX_NAV && p->id == UBX_NAV_PVT) {
     decode_npvts(&gnss_npvts_a, p->payload);
 /**/
-    if(msg_xSemaphore != NULL) {
-      osSemaphoreRelease(msg_xSemaphore);
-    }
+//    if(msg_xSemaphore != NULL) {
+//      osSemaphoreRelease(msg_xSemaphore);
+//    }
 /**/
   }
 }
