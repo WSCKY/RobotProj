@@ -14,6 +14,8 @@
 #include "magif.h"
 #include "ist83xx.h"
 
+#include "flashif.h"
+
 #include "usb_cdcif.h"
 
 #endif /* __DRIVERS_H */

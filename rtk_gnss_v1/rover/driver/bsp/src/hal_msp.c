@@ -4,7 +4,7 @@
   * @author  kyChu
   * @brief   HAL MSP module.    
   ******************************************************************************
-  */ 
+  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "drivers.h"
@@ -78,6 +78,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 {
   if (hspi->Instance == IMU_SPI) {
     imuif_msp_init(hspi);
+  } else if(hspi->Instance == FLASH_SPI) {
+    flashif_msp_init(hspi);
   }
 }
 
