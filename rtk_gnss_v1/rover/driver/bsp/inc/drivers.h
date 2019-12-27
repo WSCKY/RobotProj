@@ -15,6 +15,7 @@
 #include "ist83xx.h"
 
 #include "flashif.h"
+#include "w25qxx.h"
 
 #include "usb_cdcif.h"
 
