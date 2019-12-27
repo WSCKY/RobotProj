@@ -15,9 +15,6 @@ static osMutexId if_mutex = NULL;
 #else
 #endif /* FREERTOS_ENABLED */
 
-#define FLASH_SPI_CS_SELECT()    HAL_GPIO_WritePin(FLASH_SPI_NSS_GPIO_PORT, FLASH_SPI_NSS_PIN, GPIO_PIN_RESET)
-#define FLASH_SPI_CS_DESELECT()  HAL_GPIO_WritePin(FLASH_SPI_NSS_GPIO_PORT, FLASH_SPI_NSS_PIN, GPIO_PIN_SET)
-
 status_t flashif_init(void)
 {
   /*##-1- Configure the SPI peripheral #######################################*/
@@ -48,6 +45,35 @@ status_t flashif_init(void)
   return status_ok;
 }
 
+status_t flashif_select(uint8_t id)
+{
+  (void)id;
+  HAL_GPIO_WritePin(FLASH_SPI_NSS_GPIO_PORT, FLASH_SPI_NSS_PIN, GPIO_PIN_RESET);
+  return status_ok;
+}
+
+status_t flashif_deselect(uint8_t id)
+{
+  (void)id;
+  HAL_GPIO_WritePin(FLASH_SPI_NSS_GPIO_PORT, FLASH_SPI_NSS_PIN, GPIO_PIN_SET);
+  return status_ok;
+}
+
+status_t flashif_tx_bytes(uint8_t *pTxData, uint16_t Size)
+{
+  status_t ret = status_ok;
+#if FREERTOS_ENABLED
+  osMutexWait(if_mutex, osWaitForever);
+#else
+#endif /* FREERTOS_ENABLED */
+  ret = (status_t)HAL_SPI_Transmit(&FLASH_SpiHandle, pTxData, Size, Size);
+#if FREERTOS_ENABLED
+  osMutexRelease(if_mutex);
+#else
+#endif /* FREERTOS_ENABLED */
+  return ret;
+}
+
 status_t flashif_txrx_bytes(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
 {
   status_t ret;
@@ -55,9 +81,7 @@ status_t flashif_txrx_bytes(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size)
   osMutexWait(if_mutex, osWaitForever);
 #else
 #endif /* FREERTOS_ENABLED */
-  FLASH_SPI_CS_SELECT();
   ret = (status_t)HAL_SPI_TransmitReceive(&FLASH_SpiHandle, pTxData, pRxData, Size, Size);
-  FLASH_SPI_CS_DESELECT();
 #if FREERTOS_ENABLED
   osMutexRelease(if_mutex);
 #else
@@ -72,13 +96,13 @@ status_t flashif_txrx_bytes_it(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size
   xSemaphoreTakeFromISR(if_mutex, &taskWoken);
 #else
 #endif /* FREERTOS_ENABLED */
-  FLASH_SPI_CS_SELECT();
+  flashif_select(0);
   return (status_t)HAL_SPI_TransmitReceive_IT(&FLASH_SpiHandle, pTxData, pRxData, Size);
 }
 
 void flashif_rxtxcplt_callback(SPI_HandleTypeDef *hspi)
 {
-  FLASH_SPI_CS_DESELECT();
+  flashif_deselect(0);
 #if FREERTOS_ENABLED
   portBASE_TYPE taskWoken = pdFALSE;
   xSemaphoreGiveFromISR(if_mutex, &taskWoken);
@@ -108,11 +132,13 @@ void flashif_msp_init(SPI_HandleTypeDef *hspi)
   HAL_GPIO_Init(FLASH_SPI_NSS_GPIO_PORT, &GPIO_InitStruct);
   HAL_GPIO_WritePin(FLASH_SPI_NSS_GPIO_PORT, FLASH_SPI_NSS_PIN, GPIO_PIN_SET);
 
-  /* IMU INT1 GPIO pin configuration */
+  /* FLASH WP GPIO pin configuration */
   GPIO_InitStruct.Pin       = FLASH_WP_PIN;
-  GPIO_InitStruct.Mode      = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull      = GPIO_NOPULL;
+  GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull      = GPIO_PULLUP;
+  GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(FLASH_WP_GPIO_PORT, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(FLASH_WP_GPIO_PORT, FLASH_WP_PIN, GPIO_PIN_SET);
 
   /* SPI SCK GPIO pin configuration */
   GPIO_InitStruct.Pin       = FLASH_SPI_SCK_PIN;
@@ -138,7 +164,7 @@ void flashif_msp_init(SPI_HandleTypeDef *hspi)
   NVIC_EnableIRQ(FLASH_SPI_IRQn);
 }
 
-void imuif_msp_deinit(SPI_HandleTypeDef *hspi)
+void flashif_msp_deinit(SPI_HandleTypeDef *hspi)
 {
   /*##-1- Reset peripherals ##################################################*/
   FLASH_SPI_FORCE_RESET();
@@ -157,9 +183,14 @@ void imuif_msp_deinit(SPI_HandleTypeDef *hspi)
   HAL_GPIO_DeInit(FLASH_WP_GPIO_PORT, FLASH_WP_PIN);
 }
 
+/**
+  * @brief  This function handles SPI interrupt request.
+  * @param  None
+  * @retval None
+  */
 void FLASH_SPI_IRQHandler(void)
 {
-
+  HAL_SPI_IRQHandler(&FLASH_SpiHandle);
 }
 
 /******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/

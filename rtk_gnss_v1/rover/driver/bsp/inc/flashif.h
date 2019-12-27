@@ -43,6 +43,9 @@
 #define FLASH_SPI_IRQHandler                  SPI2_IRQHandler
 
 status_t flashif_init(void);
+status_t flashif_select(uint8_t id);
+status_t flashif_deselect(uint8_t id);
+status_t flashif_tx_bytes(uint8_t *pTxData, uint16_t Size);
 status_t flashif_txrx_bytes(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size);
 status_t flashif_txrx_bytes_it(uint8_t *pTxData, uint8_t *pRxData, uint16_t Size);
 
