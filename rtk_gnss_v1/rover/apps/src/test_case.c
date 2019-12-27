@@ -4,8 +4,11 @@
 #include <string.h>
 #include "cpu_utils.h"
 
+void test_w25qxx(void);
 void scan_i2c_dev(void);
 void check_ist83xx(void);
+
+static void print_buffer(char *tag, uint8_t *buf, uint32_t size);
 
 void test_case_task(void const *argument)
 {
@@ -14,9 +17,114 @@ void test_case_task(void const *argument)
   osDelay(500);
 
 //  scan_i2c_dev();
-  check_ist83xx();
+//  check_ist83xx();
+  test_w25qxx();
 
   vTaskDelete(NULL);
+}
+
+void test_w25qxx(void)
+{
+  uint8_t id[3];
+  uint16_t wbytes = 1000;
+  uint32_t waddr = 3456;
+  uint8_t *wcache, *rcache;
+  if(w25qxx_init() != status_ok) {
+    ky_err("failed to initialize w25qxx.\n");
+    return;
+  }
+  if(w25qxx_read_id(id) != status_ok) {
+    ky_err("read w25qxx's id failed.\n");
+    return;
+  }
+  ky_info("w25qxx device id: 0x%x, 0x%x, 0x%x\n", id[0], id[1], id[2]);
+//  switch(id) {
+//  case W25Q16: ky_info("w25q16 detected.\n"); break;
+//  case W25Q32: ky_info("w25q32 detected.\n"); break;
+//  case W25Q64: ky_info("w25q64 detected.\n"); break;
+//  case W25Q128: ky_info("w25q128 detected.\n"); break;
+//  default: ky_err("unknown device.\n"); return;
+//  }
+//  w25qxx_erase_chip();
+  if(w25qxx_write_unprotect() != status_ok) {
+    ky_err("unprotect w25qxx fail.\n");
+    return;
+  }
+  ky_info("flash read & write test.\n");
+  ky_info("write %d bytes to 0x%x.\n", wbytes, waddr);
+  wcache = kmm_alloc(wbytes);
+  rcache = kmm_alloc(wbytes);
+  if(wcache == NULL || rcache == NULL) {
+    ky_err("no memory for test.\n");
+    return;
+  }
+  memset(rcache, 0x00, wbytes);
+  for(int i = 0; i < wbytes; i ++) {
+    wcache[i] = i + 0x63;
+  }
+  print_buffer("wcache", wcache, wbytes);
+
+  ky_info("write start ...\n");
+  if(w25qxx_write_bytes(wcache, waddr, wbytes) != status_ok) {
+    ky_err("write failed.\n");
+    kmm_free(wcache);
+    kmm_free(rcache);
+    return;
+  }
+  osDelay(100);
+  ky_info("read start ...\n");
+  if(w25qxx_read_bytes(rcache, waddr, wbytes) != status_ok) {
+    ky_err("read failed.\n");
+    kmm_free(wcache);
+    kmm_free(rcache);
+    return;
+  }
+  print_buffer("rcache", rcache, wbytes);
+
+//  w25qxx_erase_sector(0);
+//
+//  osDelay(100);
+//  ky_info("read start ...\n");
+//  if(w25qxx_read_bytes(rcache, waddr, wbytes) != status_ok) {
+//    ky_err("read failed.\n");
+//    kmm_free(wcache);
+//    kmm_free(rcache);
+//    return;
+//  }
+//  print_buffer("rcache", rcache, wbytes);
+
+  ky_info("compare data ...\n");
+  int i = 0;
+  do {
+    if(rcache[i] != wcache[i]) {
+      break;
+    }
+    i ++;
+  } while(i < wbytes);
+
+  if(i < wbytes) {
+    ky_err("w25qxx test failed.-%d\n", i);
+  } else {
+    ky_info("w25qxx test success.\n");
+  }
+  kmm_free(wcache);
+  kmm_free(rcache);
+
+//  for(;;) {
+//	  osDelay(100);
+//	  w25qxx_erase_sector(0);
+//  }
+}
+
+static void print_buffer(char *tag, uint8_t *buf, uint32_t size)
+{
+  ky_info("\n%s: %d bytes: \n    ", tag, size);
+  for(int i = 0; i < size; i ++) {
+	ky_info("%02x  ", buf[i]);
+	if((i & 0xF) == 0xF)
+	  ky_info("\n    ");
+  }
+  ky_info("\n");
 }
 
 void check_ist83xx(void)
