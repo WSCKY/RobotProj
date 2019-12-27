@@ -95,6 +95,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi)
 {
   if(hspi->Instance == IMU_SPI) {
     imuif_msp_deinit(hspi);
+  } else if(hspi->Instance == FLASH_SPI) {
+    flashif_msp_deinit(hspi);
   }
 }
 
