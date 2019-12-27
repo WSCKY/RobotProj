@@ -19,9 +19,11 @@ C_SRCS += \
 ./driver/bsp/src/leds.c \
 ./driver/bsp/src/imuif.c \
 ./driver/bsp/src/magif.c \
+./driver/bsp/src/flashif.c \
 ./driver/bsp/src/usbdif.c \
 ./driver/bsp/src/ist83xx.c \
 ./driver/bsp/src/icm42605.c \
+./driver/bsp/src/w25qxx.c \
 ./driver/bsp/src/usb_cdcif.c
 
 OBJS += \
@@ -38,9 +40,11 @@ $(BuildPath)/driver/bsp/ubloxb.o \
 $(BuildPath)/driver/bsp/leds.o \
 $(BuildPath)/driver/bsp/imuif.o \
 $(BuildPath)/driver/bsp/magif.o \
+$(BuildPath)/driver/bsp/flashif.o \
 $(BuildPath)/driver/bsp/usbdif.o \
 $(BuildPath)/driver/bsp/ist83xx.o \
 $(BuildPath)/driver/bsp/icm42605.o \
+$(BuildPath)/driver/bsp/w25qxx.o \
 $(BuildPath)/driver/bsp/usb_cdcif.o
 
 C_DEPS += \
@@ -57,9 +61,11 @@ $(BuildPath)/driver/bsp/ubloxb.d \
 $(BuildPath)/driver/bsp/leds.d \
 $(BuildPath)/driver/bsp/imuif.d \
 $(BuildPath)/driver/bsp/magif.d \
+$(BuildPath)/driver/bsp/flashif.d \
 $(BuildPath)/driver/bsp/usbdif.d \
 $(BuildPath)/driver/bsp/ist83xx.d \
 $(BuildPath)/driver/bsp/icm42605.d \
+$(BuildPath)/driver/bsp/w25qxx.d \
 $(BuildPath)/driver/bsp/usb_cdcif.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
