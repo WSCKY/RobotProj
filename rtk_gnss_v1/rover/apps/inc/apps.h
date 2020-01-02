@@ -13,6 +13,7 @@
 #include "server.h"
 #include "mesg.h"
 #include "att_est_q.h"
+#include "filesystem.h"
 
 #include "stm32f7xx_hal.h"
 

@@ -35,6 +35,12 @@ void APP_StartThread(void const *argument)
   ky_alert("!!!KERNEL START!!!\n");
   comif_tx_string_util(SystemInfo);
 
+  // mount FATFS logic driver
+  if(fatfs_mount() != status_ok) {
+    ky_err("ERROR: FS INIT FAIL! EXIT!\n");
+    vTaskDelete(NULL);
+  }
+
   osThreadDef(SINS, att_est_q_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8); // stack size = 1KB
   osThreadDef(GNSS, gnss_navg_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
   osThreadDef(RTCM, rtcm_transfer_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
