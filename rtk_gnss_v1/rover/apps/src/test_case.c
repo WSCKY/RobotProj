@@ -9,6 +9,7 @@ void test_fatfs(void);
 void test_w25qxx(void);
 void scan_i2c_dev(void);
 void check_ist83xx(void);
+void list_file_fatfs(void);
 
 static void print_buffer(char *tag, uint8_t *buf, uint32_t size);
 
@@ -21,73 +22,77 @@ void test_case_task(void const *argument)
 //  scan_i2c_dev();
 //  check_ist83xx();
 //  test_w25qxx();
-  test_fatfs();
+//  test_fatfs();
+  list_file_fatfs();
+
+  ky_info("test done.\n");
 
   vTaskDelete(NULL);
 }
 
-const char test_str[] = "Hello kyChu!";
-extern const Diskio_drvTypeDef mtd_driver;
+const char test_str[] = "FATFS TEST: Hello kyChu!";
+
+void list_file_fatfs(void)
+{
+  FRESULT ret;
+  DIR *dir;
+  FILINFO *fno;
+  dir = kmm_alloc(sizeof(DIR));
+  fno = kmm_alloc(sizeof(FILINFO));
+  if(dir == NULL || fno == NULL) {
+    ky_err("no memory for test.\n");
+    goto exit;
+  }
+  ret = f_opendir(dir, "0:/");
+  if(ret != FR_OK) {
+    ky_err("open dir 0:/ failed.\n");
+    goto exit;
+  }
+
+  int cnt = 0;
+  do {
+    ret = f_readdir(dir, fno);
+    if(ret != FR_OK) {
+      ky_err("read dir failed.\n");
+      break;
+    } else if(fno->fname[0] == 0) {
+      ky_info("read done.\n");
+      break;
+    } else {
+      ky_info("%d: name: %s, size: %d, altname: %s.\n", ++cnt, fno->fname, fno->fsize, fno->altname);
+    }
+  } while(1);
+
+  ret = f_closedir(dir);
+  if(ret != FR_OK) {
+    ky_err("close directory failed.\n");
+    goto exit;
+  }
+
+exit:
+  kmm_free(dir);
+  kmm_free(fno);
+  return;
+}
+
 void test_fatfs(void)
 {
   FRESULT ret;
-  uint32_t mkfs_cnt = 0;
   uint32_t bytes_rw;
   uint8_t rtext[32];
 
   FIL *file;
-  FATFS *fatfs;
-  char *path = NULL;
-  uint8_t *workBuffer = NULL;
-  path = kmm_alloc(8);
-  fatfs = kmm_alloc(sizeof(FATFS));
   file = kmm_alloc(sizeof(FIL));
-  if(path == NULL || fatfs == NULL || file == NULL) {
+  if(file == NULL) {
     ky_err("no enough memory.\n");
     return;
   }
 
-  ky_info("link disk I/O.\n");
-  if(FATFS_LinkDriver(&mtd_driver, path) != 0) {
-    ky_err("Link the disk I/O driver failed.\n");
-    goto exit;
-  }
-
-  ky_info("mount fatfs to %s\n", path);
-  if(f_mount(fatfs, (TCHAR const *)path, 1) != FR_OK) {
-    ky_err("mount fatfs failed.\n");
-    goto exit;
-  }
-
-  ky_info("disk capacity: %d.\n", (fatfs->n_fatent - 2) * fatfs->csize);
-  uint32_t free_clust = 0;
-  ret = f_getfree(path, (DWORD *)&free_clust, &fatfs);
-  if(ret == FR_OK)
-    ky_info("disk free: %d.\n", free_clust * fatfs->csize);
-  else
-    ky_info("failed to get disk free info.\n");
-
-open_file:
   ky_info("open file HELLO.txt\n");
   ret = f_open(file, "HELLO.txt", FA_CREATE_ALWAYS | FA_WRITE);
   if(ret != FR_OK) {
-    if(ret == FR_NO_FILESYSTEM && mkfs_cnt == 0) {
-      ky_warn("warning: NO FS FOND! mkfatfs now ...\n");
-      workBuffer = kmm_alloc(_MAX_SS);
-      if(workBuffer == NULL) {
-        ky_err("no enough memory to mkfatfs, failed!\n");
-        goto exit;
-      }
-      if(f_mkfs((TCHAR const *)path, FM_ANY, 0, workBuffer, _MAX_SS) != FR_OK) {
-        ky_err("make fatfs failed.\n");
-        goto exit;
-      }
-      mkfs_cnt ++; // only format once.
-      goto open_file;
-    } else {
-      ky_err("failed to open/create file. %d\n", ret);
-      goto exit;
-    }
+    ky_err("failed to open/create file. %d\n", ret);
+    goto exit;
   }
 
   ky_info("write data(%s) to file.\n", test_str);
@@ -126,14 +131,8 @@ open_file:
     ky_err("failed to close file.\n");
   }
 
-  /* Unlink the SD disk I/O driver */
-  FATFS_UnLinkDriver(path);
-
 exit:
-  kmm_free(path);
-  kmm_free(fatfs);
   kmm_free(file);
-  kmm_free(workBuffer);
   return;
 }
 
