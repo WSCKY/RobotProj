@@ -13,6 +13,7 @@ C_SRCS += \
 ./apps/src/test_case.c \
 ./apps/src/att_est_q.c \
 ./apps/src/cpu_utils.c \
+./apps/src/filesystem.c \
 ./apps/src/mesg.c
 
 OBJS += \
@@ -23,6 +24,7 @@ $(BuildPath)/apps/server.o \
 $(BuildPath)/apps/test_case.o \
 $(BuildPath)/apps/att_est_q.o \
 $(BuildPath)/apps/cpu_utils.o \
+$(BuildPath)/apps/filesystem.o \
 $(BuildPath)/apps/mesg.o
 
 C_DEPS += \
@@ -33,6 +35,7 @@ $(BuildPath)/apps/server.d \
 $(BuildPath)/apps/test_case.d \
 $(BuildPath)/apps/att_est_q.d \
 $(BuildPath)/apps/cpu_utils.d \
+$(BuildPath)/apps/filesystem.d \
 $(BuildPath)/apps/mesg.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
