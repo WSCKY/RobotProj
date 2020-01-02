@@ -24,7 +24,8 @@ C_SRCS += \
 ./driver/bsp/src/ist83xx.c \
 ./driver/bsp/src/icm42605.c \
 ./driver/bsp/src/w25qxx.c \
-./driver/bsp/src/usb_cdcif.c
+./driver/bsp/src/usb_cdcif.c \
+./driver/bsp/src/w25_diskio.c
 
 OBJS += \
 $(BuildPath)/driver/bsp/callback.o \
@@ -45,7 +46,8 @@ $(BuildPath)/driver/bsp/usbdif.o \
 $(BuildPath)/driver/bsp/ist83xx.o \
 $(BuildPath)/driver/bsp/icm42605.o \
 $(BuildPath)/driver/bsp/w25qxx.o \
-$(BuildPath)/driver/bsp/usb_cdcif.o
+$(BuildPath)/driver/bsp/usb_cdcif.o \
+$(BuildPath)/driver/bsp/w25_diskio.o
 
 C_DEPS += \
 $(BuildPath)/driver/bsp/callback.d \
@@ -66,7 +68,8 @@ $(BuildPath)/driver/bsp/usbdif.d \
 $(BuildPath)/driver/bsp/ist83xx.d \
 $(BuildPath)/driver/bsp/icm42605.d \
 $(BuildPath)/driver/bsp/w25qxx.d \
-$(BuildPath)/driver/bsp/usb_cdcif.d
+$(BuildPath)/driver/bsp/usb_cdcif.d \
+$(BuildPath)/driver/bsp/w25_diskio.d
 
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 
