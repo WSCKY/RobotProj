@@ -16,15 +16,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-USBD_HandleTypeDef USBD_Device;
-
-USBD_CDC_LineCodingTypeDef LineCoding =
-{
-  115200, /* baud rate*/
-  0x00,   /* stop bits-1*/
-  0x00,   /* parity - none*/
-  0x08    /* nb. of bits 8*/
-};
+static USBD_HandleTypeDef *usb_dev_cdc;
 
 //__ALIGN_BEGIN uint8_t UserRxBuffer[APP_RX_DATA_SIZE] __ALIGN_END;/* Received Data over USB are stored in this buffer */
 uint8_t *pUserRxBuffer = NULL;
@@ -34,9 +26,6 @@ uint32_t UserTxBufPtrIn = 0;/* Increment this pointer or roll it back to
                                start address when data are received over USART */
 uint32_t UserTxBufPtrOut = 0; /* Increment this pointer or roll it back to
                                  start address when data are sent over USB */
-
-/* USB handler declaration */
-extern USBD_HandleTypeDef  USBD_Device;
 
 /* Private function prototypes -----------------------------------------------*/
 static int8_t CDC_Itf_Init(void);
@@ -64,7 +53,7 @@ static int8_t CDC_Itf_Init(void)
 {
   /*##-5- Set Application Buffers ############################################*/
 //  USBD_CDC_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
-  USBD_CDC_SetRxBuffer(&USBD_Device, pUserRxBuffer);
+  USBD_CDC_SetRxBuffer(usb_dev_cdc, pUserRxBuffer);
   return (USBD_OK);
 }
 
@@ -161,8 +150,8 @@ static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   */
 static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
 {
-  USBD_CDC_SetRxBuffer(&USBD_Device, &Buf[0]);
-  USBD_CDC_ReceivePacket(&USBD_Device);
+  USBD_CDC_SetRxBuffer(usb_dev_cdc, &Buf[0]);
+  USBD_CDC_ReceivePacket(usb_dev_cdc);
   return (USBD_OK);
 }
 
@@ -170,31 +159,34 @@ static int8_t CDC_Itf_Receive(uint8_t* Buf, uint32_t *Len)
 
 status_t cdcif_init(void)
 {
+  usb_dev_cdc = kmm_alloc(sizeof(USBD_HandleTypeDef));
+  if(usb_dev_cdc == NULL) return status_nomem;
+
   /* Init Device Library */
-  if(USBD_Init(&USBD_Device, &VCP_Desc, 0) != USBD_OK) return status_error;
+  if(USBD_Init(usb_dev_cdc, &VCP_Desc, 0) != USBD_OK) return status_error;
 
   /* Add Supported Class */
-  if(USBD_RegisterClass(&USBD_Device, USBD_CDC_CLASS) != USBD_OK) return status_error;
+  if(USBD_RegisterClass(usb_dev_cdc, USBD_CDC_CLASS) != USBD_OK) return status_error;
 
   /* Add CDC Interface Class */
-  if(USBD_CDC_RegisterInterface(&USBD_Device, &USBD_CDC_fops) != USBD_OK) return status_error;
+  if(USBD_CDC_RegisterInterface(usb_dev_cdc, &USBD_CDC_fops) != USBD_OK) return status_error;
   /* alloc memory for CDC class */
-  if(USBD_CDC_MallocClassData(&USBD_Device) != USBD_OK) return status_nomem;
+  if(USBD_CDC_MallocClassData(usb_dev_cdc) != USBD_OK) return status_nomem;
   /* alloc memory for CDC receive cache */
   pUserRxBuffer = kmm_alloc(APP_RX_DATA_SIZE);
   if(pUserRxBuffer == NULL) return status_nomem;
 
   /* Start Device Process */
-  USBD_Start(&USBD_Device);
+  USBD_Start(usb_dev_cdc);
 
   return status_ok;
 }
 
 status_t cdcif_tx_bytes(uint8_t *p, uint32_t l)
 {
-  USBD_CDC_SetTxBuffer(&USBD_Device, p, l);
+  USBD_CDC_SetTxBuffer(usb_dev_cdc, p, l);
 
-  if(USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK) return status_ok;
+  if(USBD_CDC_TransmitPacket(usb_dev_cdc) == USBD_OK) return status_ok;
   return status_error;
 }
 
