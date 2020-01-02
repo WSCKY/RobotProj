@@ -171,8 +171,7 @@ status_t w25qxx_read_id(uint8_t *id)
 status_t w25qxx_read_bytes(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)
 {
   status_t ret = status_ok;
-  ret = w25qxx_write_disable();
-  if(ret != status_ok) return ret;
+  w25qxx_wait_busy();
 
   w25qxx_wcache[0] = W25QXX_FastReadData;//W25QXX_ReadData;
   w25qxx_wcache[1] = (ReadAddr >> 16) & 0xFF;
