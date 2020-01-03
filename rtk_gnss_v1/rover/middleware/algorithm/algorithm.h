@@ -18,6 +18,9 @@
 
 #define ABS(x)                         (((x) > 0) ? (x) : (-(x)))
 
+#define DEG_TO_RAD 0.017453292519943295769236907684886f
+#define RAD_TO_DEG 57.295779513082320876798154814105f
+
 #define DEG2RAD(deg)                   ((deg) * 0.017453292519943295769236907684886f)
 #define RAD2DEG(rad)                   ((rad) * 57.295779513082320876798154814105f)
 
@@ -28,6 +31,12 @@ typedef struct {
 typedef struct {
   float X, Y, Z;
 } Vector3D;
+
+void fusionQ_6dot(IMU_UNIT_6DOF *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
+void fusionQ_9dot(IMU_UNIT_9DOF *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
+void Quat2Euler(Quat_T* q, Euler_T* eur);
+
+double computeAzimuth(double lat1, double lon1, double lat2, double lon2);
 
 #endif /* __ALGORITHM_H */
 
