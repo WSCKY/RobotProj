@@ -6,7 +6,7 @@
  */
 
 #include "att_est_q.h"
-#include "quat_est.h"
+#include "algorithm.h"
 
 #include "mesg.h"
 #include "kyLink.h"
