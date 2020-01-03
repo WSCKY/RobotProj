@@ -20,6 +20,7 @@
 
 status_t cdcif_init(void);
 status_t cdcif_tx_bytes(uint8_t *p, uint32_t l);
+uint32_t cdcif_rx_bytes(uint8_t *p, uint32_t l, uint32_t timeout);
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
