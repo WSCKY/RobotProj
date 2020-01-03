@@ -32,7 +32,7 @@ void test_case_task(void const *argument)
 
 const char test_str[] = "FATFS TEST: Hello kyChu!";
 
-void list_file_fatfs(void)
+static void list_dir(const TCHAR *path)
 {
   FRESULT ret;
   DIR *dir;
@@ -43,23 +43,22 @@ void list_file_fatfs(void)
     ky_err("no memory for test.\n");
     goto exit;
   }
-  ret = f_opendir(dir, "0:/");
+  ret = f_opendir(dir, path);
   if(ret != FR_OK) {
     ky_err("open dir 0:/ failed.\n");
     goto exit;
   }
 
-  int cnt = 0;
   do {
     ret = f_readdir(dir, fno);
     if(ret != FR_OK) {
-      ky_err("read dir failed.\n");
+      ky_err("read %s failed.\n", path);
       break;
     } else if(fno->fname[0] == 0) {
-      ky_info("read done.\n");
+      ky_info("%s read done.\n", path);
       break;
     } else {
-      ky_info("%d: name: %s, size: %d, altname: %s.\n", ++cnt, fno->fname, fno->fsize, fno->altname);
+      ky_info("%s: name: %s, size: %d, altname: %s.\n", path, fno->fname, fno->fsize, fno->altname);
     }
   } while(1);
 
@@ -69,9 +68,32 @@ void list_file_fatfs(void)
     goto exit;
   }
 
-exit:
-  kmm_free(dir);
-  kmm_free(fno);
+  exit:
+    kmm_free(dir);
+    kmm_free(fno);
+}
+
+void list_file_fatfs(void)
+{
+  FRESULT ret;
+
+  ret = f_mkdir("0:/calib");
+  ky_info("mkdir ret -%d.\n", ret);
+  ret = f_mkdir("0:/firmware");
+  ky_info("mkdir ret -%d.\n", ret);
+  ret = f_mkdir("0:/start");
+  ky_info("mkdir ret -%d.\n", ret);
+  ret = f_mkdir("0:/calib/acc");
+  ky_info("mkdir ret -%d.\n", ret);
+  ret = f_mkdir("0:/calib/gyr");
+  ky_info("mkdir ret -%d.\n", ret);
+  ret = f_mkdir("0:/calib/mag");
+  ky_info("mkdir ret -%d.\n", ret);
+
+  list_dir("0:/");
+  list_dir("0:/calib");
+  list_dir("0:/start");
+
   return;
 }
 
