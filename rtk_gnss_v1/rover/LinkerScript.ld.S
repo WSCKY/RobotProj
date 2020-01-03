@@ -145,6 +145,15 @@ SECTIONS
     __bss_end__ = _ebss;
   } >SYS_MAIN_MEMORY
 
+  /* heap section for RTOS */
+  .rtos_heap (NOLOAD) :
+  {
+    . = ALIGN(4);
+    ucHeap = .;
+    . = . + RTOS_HEAP_DEPTH;
+    . = ALIGN(4);
+  } >SYS_MAIN_MEMORY
+
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack (NOLOAD) :
   {
