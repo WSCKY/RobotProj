@@ -15,6 +15,10 @@ __PACK_BEGIN typedef struct {
   void *pointer;
 } __PACK_END COM_MSG_DEF;
 
+#define TYPE_QUAT_Info_Resp                      (0x12)
+#define TYPE_RTK_Info_Resp                       (0x61)
+#define TYPE_PVTS_Info_Resp                      (0x56)
+
 void mesg_send_task(void const *argument);
 void mesg_send_mesg(void *msg);
 
