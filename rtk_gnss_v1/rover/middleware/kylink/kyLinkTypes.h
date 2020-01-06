@@ -12,6 +12,12 @@
   #define HARD_DEV_ID                            (0)
 #endif /* HARD_DEV_ID */
 
+#if (FREERTOS_ENABLED)
+#ifndef KYLINK_TIMEOUT
+#define KYLINK_TIMEOUT                           1000
+#endif /* KYLINK_TIMEOUT */
+#endif /* FREERTOS_ENABLED */
+
 /* Frame Header */
 #define kySTX1                                   (0x55)
 #define kySTX2                                   (0xAA)
@@ -30,36 +36,10 @@ __PACK_BEGIN typedef enum {
 } __PACK_END DECODE_STATE;
 
 __PACK_BEGIN typedef enum {
-  /* Communication Heartbeat */
-  TYPE_LINK_HEARTBEAT = 0x01,
-  /* Protocol Information */
-  TYPE_LINKRE_VER_Req = 0x02,
-  TYPE_LINKER_VER_Resp = 0x03,
-  TYPE_LINKER_NAME_Req = 0x04,
-#if defined(KYLINK_USER_TYPE)
-  KYLINK_USER_TYPE
-#endif
+  KYLINK_MSG_HEARTBEAT = 0x01,
+  KYLINK_MSG_VERN_INFO = 0x02,
+  KYLINK_MSG_ID_USER   = 0x03,
 } __PACK_END PACKET_TYPE;
-
-__PACK_BEGIN typedef union {
-	uint8_t Heartbeat;
-	uint8_t VersionReq;
-	uint16_t VersionAck;
-#if defined(KYLINK_USER_TYPE_DATA)
-	KYLINK_USER_TYPE_DATA
-#endif
-} __PACK_END PackTypeDataDef;
-
-#if defined(KYLINK_PAYLOAD_SIZE)
-  #define MAIN_DATA_CACHE                          KYLINK_PAYLOAD_SIZE
-#else
-  #define MAIN_DATA_CACHE                          sizeof(PackTypeDataDef)
-#endif /* defined(KYLINK_PAYLOAD_SIZE) */
-
-__PACK_BEGIN typedef union {
-	uint8_t RawData[MAIN_DATA_CACHE];
-	PackTypeDataDef TypeData;
-} __PACK_END PacketDataUnion;
 
 __PACK_BEGIN typedef struct {
   uint8_t stx1;
@@ -67,33 +47,40 @@ __PACK_BEGIN typedef struct {
   uint8_t dev_id;
   uint8_t msg_id;
   uint16_t length;
-  PacketDataUnion PacketData;
+  uint8_t *buffer;
   uint16_t crc16;
-} __PACK_END PackageStructDef;
+} __PACK_END kyLinkBlockDef;
 
-#define PACKET_CACHE                             sizeof(PackageStructDef)
-
-__PACK_BEGIN typedef union {
-	PackageStructDef FormatData;
-	uint8_t RawData[PACKET_CACHE];
-} __PACK_END kyLinkPackageDef;
-
-typedef void (*kyLinkDecodeCallback)(kyLinkPackageDef *);
+typedef void (*kyLinkDecodeCallback)(kyLinkBlockDef *);
 typedef status_t (*kyLinkPortTxBytesFunc)(uint8_t *, uint32_t);
 
+typedef struct {
+  /* transmit configuration */
+  kyLinkPortTxBytesFunc txfunc;
+  /* decoder configuration */
+  uint8_t *decoder_cache;
+  uint16_t cache_size;
+  kyLinkDecodeCallback callback;
+} kyLinkConfig_t;
+
 __PACK_BEGIN typedef struct {
-	/* decoder required. */
-	bool_t update_flag;
-	uint32_t rx_counter;
-	DECODE_STATE _decode_state;
-	kyLinkPackageDef _rx_packet;
-	kyLinkPackageDef _rx_packet_copy;
+  /* decoder required. */
+  uint16_t cache_size;
+  uint32_t rx_counter;
+  DECODE_STATE _decode_state;
+  kyLinkBlockDef _rx_packet;
   kyLinkDecodeCallback decode_callback;
 } __PACK_END kyLinkDecoderDef;
 
 __PACK_BEGIN typedef struct {
-	kyLinkDecoderDef decoder;
-	kyLinkPortTxBytesFunc port_tx;
+#if (FREERTOS_ENABLED)
+  osSemaphoreId sync;
+#endif /* FREERTOS_ENABLED */
+  kyLinkBlockDef block;
+  kyLinkDecoderDef decoder;
+  kyLinkPortTxBytesFunc txfunc;
 } __PACK_END KYLINK_CORE_HANDLE;
 
 #endif /* __KYLINKTYPES_H */
+
+/******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/

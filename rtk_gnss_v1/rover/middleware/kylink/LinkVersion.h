@@ -21,3 +21,5 @@
 #define KYLINK_MODULE_NAME             "kyLink@kyChu V"#VER_MAJOR"."#VER_MINOR"."#VER_FIXNUM
 
 #endif /* __LINKVERSION_H */
+
+/******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/

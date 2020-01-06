@@ -49,8 +49,8 @@ typedef unsigned           int uint32_t;
 #define _UINT32_T_DECLARED
 #endif
 
-#define kyNULL                                   (0)
-
-//__PACK_BEGIN typedef enum { kyFALSE = 0, kyTRUE = !kyFALSE } __PACK_END BooleanState;
+#define kyNULL                                   (0UL)
 
 #endif /* MIDDLEWARE_KYLINK_KYLINKMACROS_H_ */
+
+/******************** kyChu<kyChu@qq.com> **** END OF FILE ********************/

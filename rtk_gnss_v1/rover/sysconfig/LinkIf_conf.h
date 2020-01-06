@@ -6,12 +6,8 @@
 
 #define HARD_DEV_ID                    (0x24) /* for RTK ROVER */
 
-#define KYLINK_USER_TYPE               TYPE_RTK_Info_Resp = 0x61, \
-                                       TYPE_PVTS_Info_Resp = 0x56, \
-									   TYPE_QUAT_Info_Resp = 0x12,
-
-#define KYLINK_USER_TYPE_DATA          Location_T LocationInfo; \
-                                       ubx_npvts_t pvts; \
-                                       Quat_T quat;
+#if (FREERTOS_ENABLED)
+#define KYLINK_TIMEOUT                 1000
+#endif /* FREERTOS_ENABLED */
 
 #endif /* __LINKIF_CONF_H */
