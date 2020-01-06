@@ -4,17 +4,27 @@
 #include <math.h>
 
 static KYLINK_CORE_HANDLE *kylink_msg;
-static kyLinkPackageDef *tx_packet;
+
+static uint8_t *mesg_data_cache;
+static uint8_t *kylink_decoder_cache;
+
+static uint8_t *mesg_test_send_cache;
+
+#define KYLINK_MSG_CACHE_SIZE                    (128)
 
 /* Semaphore to signal incoming packets */
 static QueueHandle_t com_msg_q = NULL;
 
 static void mesg_decode_task(void const *argument);
-static void mesg_decode_callback(kyLinkPackageDef *pRx);
+static void mesg_decode_callback(kyLinkBlockDef *pRx);
+
+static uint32_t msg_data_length = 0;
+static status_t test_mesg_cache_send(uint8_t *p, uint32_t l);
 
 void mesg_send_task(void const *argument)
 {
   COM_MSG_DEF *msg = NULL;
+  kyLinkConfig_t *cfg = NULL;
 
   if(cdcif_init() != status_ok) {
     ky_err("usb cdc init failed.\n");
@@ -29,33 +39,58 @@ void mesg_send_task(void const *argument)
   }
 
   msg = kmm_alloc(sizeof(COM_MSG_DEF));
-  tx_packet = kmm_alloc(sizeof(kyLinkPackageDef));
+  cfg = kmm_alloc(sizeof(kyLinkConfig_t));
   kylink_msg = kmm_alloc(sizeof(KYLINK_CORE_HANDLE));
+  mesg_data_cache = kmm_alloc(KYLINK_MSG_CACHE_SIZE);
+  kylink_decoder_cache = kmm_alloc(KYLINK_MSG_CACHE_SIZE);
 
-  if(msg == NULL || tx_packet == NULL || kylink_msg == NULL) {
+  mesg_test_send_cache = kmm_alloc(KYLINK_MSG_CACHE_SIZE + 8);
+
+  if(msg == NULL || cfg == NULL || kylink_msg == NULL || mesg_data_cache == NULL || kylink_decoder_cache == NULL || mesg_test_send_cache == NULL) {
+    kmm_free(msg);
+    kmm_free(cfg);
+    kmm_free(kylink_msg);
+    kmm_free(mesg_data_cache);
+    kmm_free(kylink_decoder_cache);
+    kmm_free(mesg_test_send_cache);
     ky_err("mesg memory alloc failed, EXIT!\n");
     vTaskDelete(NULL);
   }
 
-  ky_info("mesg module started.\n");
+  cfg->txfunc = test_mesg_cache_send;//cdcif_tx_bytes;
+  cfg->callback = mesg_decode_callback;
+  cfg->cache_size = KYLINK_MSG_CACHE_SIZE;
+  cfg->decoder_cache = kylink_decoder_cache;
+  kylink_init(kylink_msg, cfg);
 
-  kyLinkInit(kylink_msg);
-  kyLinkConfigTxFunc(kylink_msg, cdcif_tx_bytes);
-  kyLinkInitPackage(tx_packet);
+  kmm_free(cfg);
+
+  ky_info("mesg module started.\n");
 
   osThreadDef(DECODE, mesg_decode_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2); // stack size = 256B
   if(osThreadCreate(osThread(DECODE), NULL) == NULL) ky_err("mesg decode task create failed.\n");
 
   for(;;) {
     if(xQueueReceive(com_msg_q, msg, osWaitForever) == pdPASS) {
-      tx_packet->FormatData.length = msg->len;
-      tx_packet->FormatData.msg_id = msg->type;
-      ( void ) memcpy( ( void * ) &(tx_packet->FormatData.PacketData.RawData[0]), ( void * ) msg->pointer, ( size_t ) msg->len );
+      ( void ) memcpy( ( void * ) mesg_data_cache, ( void * ) msg->pointer, ( size_t ) msg->len );
       // indicate read operation.
       *((msg_wr_state *)(msg->state)) = msg_read;
-      SendTxPacket(kylink_msg, tx_packet);
+      kylink_send(kylink_msg, ( void * ) mesg_data_cache, msg->type, msg->len);
+      if(msg_data_length > 0) {
+        cdcif_tx_bytes(mesg_test_send_cache, msg_data_length);
+        msg_data_length = 0;
+      }
     }
   }
+}
+
+static status_t test_mesg_cache_send(uint8_t *p, uint32_t l)
+{
+  if((msg_data_length + l) < (KYLINK_MSG_CACHE_SIZE + 8)) {
+    memcpy((void *)mesg_test_send_cache + msg_data_length, (void *)p, (size_t)l);
+    msg_data_length += l;
+  }
+  return status_ok;
 }
 
 void mesg_send_mesg(void *msg)
@@ -64,9 +99,9 @@ void mesg_send_mesg(void *msg)
   xQueueSend(com_msg_q, msg, osWaitForever);
 }
 
-static void mesg_decode_callback(kyLinkPackageDef *pRx)
+static void mesg_decode_callback(kyLinkBlockDef *pRx)
 {
-  ky_info("recv new mesg: 0x%x, 0x%x.\n", pRx->FormatData.msg_id, pRx->FormatData.dev_id);
+  ky_info("recv new mesg: 0x%x, 0x%x.\n", pRx->msg_id, pRx->dev_id);
 }
 
 static void mesg_decode_task(void const *argument)
@@ -78,7 +113,6 @@ static void mesg_decode_task(void const *argument)
     ky_err("no memory for mesg decoder task.\n");
     vTaskDelete(NULL);
   }
-  kyLinkConfigCbFunc(kylink_msg, mesg_decode_callback);
   ky_info("mesg decoder start.\n");
   for(;;) {
     rx_len = cdcif_rx_bytes(pRxCache, 128, osWaitForever);
