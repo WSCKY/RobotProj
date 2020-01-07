@@ -12,12 +12,6 @@
   #define HARD_DEV_ID                            (0)
 #endif /* HARD_DEV_ID */
 
-#if (FREERTOS_ENABLED)
-#ifndef KYLINK_TIMEOUT
-#define KYLINK_TIMEOUT                           1000
-#endif /* KYLINK_TIMEOUT */
-#endif /* FREERTOS_ENABLED */
-
 /* Frame Header */
 #define kySTX1                                   (0x55)
 #define kySTX2                                   (0xAA)
@@ -73,9 +67,6 @@ __PACK_BEGIN typedef struct {
 } __PACK_END kyLinkDecoderDef;
 
 __PACK_BEGIN typedef struct {
-#if (FREERTOS_ENABLED)
-  osSemaphoreId sync;
-#endif /* FREERTOS_ENABLED */
   kyLinkBlockDef block;
   kyLinkDecoderDef decoder;
   kyLinkPortTxBytesFunc txfunc;

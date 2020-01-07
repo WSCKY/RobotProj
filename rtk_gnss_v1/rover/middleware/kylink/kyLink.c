@@ -53,10 +53,6 @@ static uint16_t compute_crc16(uint8_t *ptr, uint32_t len, uint16_t crc);
 status_t kylink_init(KYLINK_CORE_HANDLE *pHandle, kyLinkConfig_t *pConfig)
 {
   kylink_block_init(&(pHandle->block));
-#if (FREERTOS_ENABLED)
-  vSemaphoreCreateBinary(pHandle->sync);
-  if(pHandle->sync == NULL) return status_nomem;
-#endif /* FREERTOS_ENABLED */
   pHandle->txfunc = kyNULL;
   pHandle->decoder.rx_counter = 0;
   pHandle->decoder.decode_callback = kyNULL;
@@ -84,9 +80,6 @@ status_t kylink_send(KYLINK_CORE_HANDLE *pHandle, void *msg, uint8_t msgid, uint
   status_t ret = status_error;
   if(msg == kyNULL || len == 0 || pHandle->txfunc == kyNULL) return ret;
 
-#if (FREERTOS_ENABLED)
-  if(osSemaphoreWait(pHandle->sync, KYLINK_TIMEOUT) != osOK) return status_timeout;
-#endif /* FREERTOS_ENABLED */
   pHandle->block.msg_id = msgid;
   pHandle->block.buffer = (uint8_t *)msg;
   pHandle->block.length = len;
@@ -99,9 +92,7 @@ status_t kylink_send(KYLINK_CORE_HANDLE *pHandle, void *msg, uint8_t msgid, uint
     ret = pHandle->txfunc(pHandle->block.buffer, pHandle->block.length);
   if(ret == status_ok)
     ret = pHandle->txfunc((uint8_t *)&(pHandle->block.crc16), 2);
-#if (FREERTOS_ENABLED)
-  osSemaphoreRelease(pHandle->sync);
-#endif /* FREERTOS_ENABLED */
+
   return ret;
 }
 #pragma GCC pop_options
