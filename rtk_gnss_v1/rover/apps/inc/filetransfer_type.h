@@ -8,6 +8,7 @@
 #ifndef INC_FILETRANSFER_TYPE_H_
 #define INC_FILETRANSFER_TYPE_H_
 
+#include "ff.h"
 #include "kyLinkMacros.h"
 
 #define FILETRANSFER_CACHE_SIZE                  (100)
@@ -21,31 +22,30 @@ typedef enum {
 } FileEncryptType;
 
 typedef enum {
-  F_OPT_SEND   = 0, // send file to lower.
-  F_OPT_RECV   = 1, // send file to upper.
-  F_OPT_LIST   = 2, // get directory content.
-  F_OPT_CREATE = 3, // create file/directory.
-  F_OPT_DELETE = 4, // delete file/directory.
+  F_OPT_NULL   = 0, // null operation.
+  F_OPT_SEND   = 1, // send file to lower.
+  F_OPT_RECV   = 2, // send file to upper.
+  F_OPT_LIST   = 3, // get directory content.
+  F_OPT_CREATE = 4, // create file/directory.
+  F_OPT_DELETE = 5, // delete file/directory.
 } FileOperateType;
 
-typedef enum {
-  F_OK = 0,    // OK
-  F_ERROR = 1, // ERROR
-} FileOperateState;
+typedef FRESULT FileOperateState;
 
 __PACK_BEGIN typedef struct {
   FileOperateType OptCmd;
   union {
-    __PACK_BEGIN struct {
+    struct {
       FileEncryptType EncType;
-
-    } FileInfo __PACK_END;
-    __PACK_BEGIN struct {
-
-    } SyncFile __PACK_END;
-    __PACK_BEGIN struct {
       uint8_t FileAttr;
-    } CreateObj __PACK_END;
+    } FileInfo;
+    struct {
+
+    } ListFile;
+    struct {
+      uint8_t FileAttr;
+    } CreateObj;
+    uint8_t reserve[4];
   };
   char Filename[FILETRANSFER_FILENAME_LEN];
 } __PACK_END FileTransReq_T;
@@ -60,10 +60,10 @@ __PACK_BEGIN typedef struct {
   FileOperateType OptCmd;
   FileOperateState OptSta;
   union {
-    __PACK_BEGIN struct {
+    struct {
       uint32_t PackID;
       uint32_t DataLen;
-    } PackInfo __PACK_END;
+    } PackInfo;
     __PACK_BEGIN struct {}  __PACK_END;
   };
 } __PACK_END FileTransAck_T;
