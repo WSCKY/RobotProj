@@ -48,6 +48,7 @@ void APP_StartThread(void const *argument)
   osThreadDef(TEST, test_case_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 8); // stack size = 1KB
 #endif /* (TEST_CASE_TASK_ENABLE) */
   osThreadDef(MESG, mesg_send_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4); // stack size = 512B
+  osThreadDef(FILE, transfile_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4); // stack size = 512B
 
   if(osThreadCreate(osThread(SINS), NULL) == NULL) ky_err("sins task create failed.\n");
   if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err("gnss task create failed.\n");
@@ -56,6 +57,7 @@ void APP_StartThread(void const *argument)
   if(osThreadCreate(osThread(TEST), NULL) == NULL) ky_err("test task create failed.\n");
 #endif /* (TEST_CASE_TASK_ENABLE) */
   if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err("mesg task create failed.\n");
+  if(osThreadCreate(osThread(FILE), NULL) == NULL) ky_err("file task create failed.\n");
 
   /* LED INDICATOR TASK */
   osThreadDef(LEDS, led_thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE); // stack size = 128B
