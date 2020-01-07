@@ -21,10 +21,6 @@ static Quat_T est_q = {1, 0, 0, 0};
 static IMU_RAW_6DOF imu_raw;
 static IMU_UNIT_6DOF imu_unit;
 
-static COM_MSG_DEF msg_quat;
-static Quat_T msg_quat_store;
-static msg_wr_state msg_quat_flag = msg_read;
-
 //static _3AxisUnit gyr_off;
 static uint32_t imu_selftest_done = 0;
 static uint32_t gyr_peace_flag = 0;
@@ -92,18 +88,11 @@ void att_est_q_task(void const *argument)
 
       /* TEST CODE */
       time_now = xTaskGetTickCountFromISR();
-      if((time_now - time_start) > 10) {
+      if((time_now - time_start) >= 10) {
         time_start = time_now;
 
-        if(msg_quat_flag == msg_read) {
-          msg_quat_flag = msg_write;
-          msg_quat_store = est_q;
-          msg_quat.len = sizeof(Quat_T);
-          msg_quat.type = TYPE_QUAT_Info_Resp;
-          msg_quat.state = &msg_quat_flag;
-          msg_quat.pointer = &msg_quat_store;
-          mesg_send_mesg(&msg_quat);
-        }
+        mesg_send_mesg((const void *)&est_q, TYPE_QUAT_Info_Resp, sizeof(Quat_T));
+
 //        tcnt ++;
 //        led_on(LED_BLUE);
 //        if(tcnt & 1)
