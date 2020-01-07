@@ -140,7 +140,7 @@ static void file_delete(void)
   ky_info("delete %s.\n", currentReq.Filename);
   currentAck.OptCmd = F_OPT_DELETE;
   currentAck.OptSta = f_unlink((const TCHAR *)currentReq.Filename);
-
+  mesg_send_mesg(currentAck, FILE_TRANS_ACK_MSG, sizeof(FileTransAck_T));
   currentReq.OptCmd = F_OPT_NULL;
 }
 
