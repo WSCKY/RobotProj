@@ -19,6 +19,10 @@ __PACK_BEGIN typedef struct {
 #define TYPE_RTK_Info_Resp                       (0x61)
 #define TYPE_PVTS_Info_Resp                      (0x56)
 
+#define FILE_TRANS_REQ_MSG                       (0xB0)
+#define FILE_TRANS_DATA_MSG                      (0xB1)
+#define FILE_TRANS_ACK_MSG                       (0xB2)
+
 void mesg_send_task(void const *argument);
 void mesg_send_mesg(void *msg);
 

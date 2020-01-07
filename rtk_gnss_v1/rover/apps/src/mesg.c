@@ -1,7 +1,8 @@
 #include "mesg.h"
 #include "kyLink.h"
-#include "gnss.h"
 #include <math.h>
+
+#include "filetransfer.h"
 
 static KYLINK_CORE_HANDLE *kylink_msg;
 
@@ -101,7 +102,8 @@ void mesg_send_mesg(void *msg)
 
 static void mesg_decode_callback(kyLinkBlockDef *pRx)
 {
-  ky_info("recv new mesg: 0x%x, 0x%x.\n", pRx->msg_id, pRx->dev_id);
+//  ky_info("recv new mesg: 0x%x, 0x%x.\n", pRx->msg_id, pRx->dev_id);
+  filetransfer_cmd_process(pRx);
 }
 
 static void mesg_decode_task(void const *argument)
