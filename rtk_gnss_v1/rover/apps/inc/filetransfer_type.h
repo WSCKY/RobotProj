@@ -30,7 +30,7 @@ typedef enum {
   F_OPT_DELETE = 5, // delete file/directory.
 } FileOperateType;
 
-typedef FRESULT FileOperateState;
+typedef uint8_t FileOperateState;
 
 __PACK_BEGIN typedef struct {
   FileOperateType OptCmd;
@@ -51,9 +51,19 @@ __PACK_BEGIN typedef struct {
 } __PACK_END FileTransReq_T;
 
 __PACK_BEGIN typedef struct {
-  uint32_t PackID;
-  uint32_t DataLen;
-  uint8_t fData[FILETRANSFER_CACHE_SIZE];
+  union {
+    struct {
+      uint32_t PackID;
+      uint32_t DataLen;
+      uint8_t fData[FILETRANSFER_CACHE_SIZE];
+    } FileData;
+    struct {
+      uint8_t FileId;
+      uint8_t FileAttr;
+      uint8_t FilePath[FILETRANSFER_FILENAME_LEN / 2];
+      uint8_t FileName[FILETRANSFER_FILENAME_LEN / 2];
+    } FileInfo;
+  };
 } __PACK_END FileTransData_T;
 
 __PACK_BEGIN typedef struct {
@@ -62,9 +72,10 @@ __PACK_BEGIN typedef struct {
   union {
     struct {
       uint32_t PackID;
-      uint32_t DataLen;
     } PackInfo;
-    __PACK_BEGIN struct {}  __PACK_END;
+    struct {
+      uint32_t FileId;
+    } FileInfo;
   };
 } __PACK_END FileTransAck_T;
 
