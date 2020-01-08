@@ -16,6 +16,9 @@
 #define LIMIT_MIN(x, y)                (((x) < (y)) ? (y) : (x))
 #define LIMIT_RANGE(x, max, min)       (LIMIT_MAX(LIMIT_MIN((x), (min)), (max)))
 
+#define MIN(x, y)                      (((x) < (y)) ? (x) : (y))
+#define MAX(x, y)                      (((x) < (y)) ? (y) : (x))
+
 #define ABS(x)                         (((x) > 0) ? (x) : (-(x)))
 
 #define DEG_TO_RAD 0.017453292519943295769236907684886f
