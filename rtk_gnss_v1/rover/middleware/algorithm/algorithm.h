@@ -16,8 +16,12 @@
 #define LIMIT_MIN(x, y)                (((x) < (y)) ? (y) : (x))
 #define LIMIT_RANGE(x, max, min)       (LIMIT_MAX(LIMIT_MIN((x), (min)), (max)))
 
+#ifndef MIN
 #define MIN(x, y)                      (((x) < (y)) ? (x) : (y))
+#endif /* defined(MIN) */
+#ifndef MAX
 #define MAX(x, y)                      (((x) < (y)) ? (y) : (x))
+#endif /* defined(MAX) */
 
 #define ABS(x)                         (((x) > 0) ? (x) : (-(x)))
 
