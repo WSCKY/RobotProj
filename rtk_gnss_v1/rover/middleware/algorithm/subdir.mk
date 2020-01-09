@@ -6,14 +6,17 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+./middleware/algorithm/commonly.c \
 ./middleware/algorithm/quat_est.c \
 ./middleware/algorithm/navigation.c
 
 OBJS += \
+$(BuildPath)/middleware/algorithm/commonly.o \
 $(BuildPath)/middleware/algorithm/quat_est.o \
 $(BuildPath)/middleware/algorithm/navigation.o 
 
 C_DEPS += \
+$(BuildPath)/middleware/algorithm/commonly.d \
 $(BuildPath)/middleware/algorithm/quat_est.d \
 $(BuildPath)/middleware/algorithm/navigation.o
 
