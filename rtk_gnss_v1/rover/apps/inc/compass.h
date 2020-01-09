@@ -8,7 +8,11 @@
 #ifndef __COMPASS_H
 #define __COMPASS_H
 
+#include "drivers.h"
+
 void magnetics_task(void const *argument);
+
+int magnetics_take(Vector3D *data);
 
 #endif /* __COMPASS_H */
 
