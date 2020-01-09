@@ -16,6 +16,8 @@ static osMutexId msg_mutex = NULL;
 /* Semaphore to signal incoming packets */
 static osSemaphoreId msg_available = NULL;
 
+static struct MsgList *msg_list = NULL;
+
 static uint32_t _task_running = 0;
 
 static void mesg_decode_task(void const *argument);
@@ -98,6 +100,19 @@ static status_t mesg_send_cache(uint8_t *p, uint32_t l)
   return status_ok;
 }
 
+void mesg_publish_mesg(struct MsgList *list)
+{
+  struct MsgList *pr = msg_list;
+  if(msg_list == NULL)
+    msg_list = list;
+  else {
+    while(pr->next != NULL) {
+      pr = pr->next;
+    }
+    pr->next = list;
+  }
+}
+
 void mesg_send_mesg(const void *msg, uint8_t msgid, uint16_t len)
 {
   if(_task_running == 0) return;
@@ -110,7 +125,20 @@ void mesg_send_mesg(const void *msg, uint8_t msgid, uint16_t len)
 static void mesg_decode_callback(kyLinkBlockDef *pRx)
 {
 //  ky_info("recv new mesg: 0x%x, 0x%x.\n", pRx->msg_id, pRx->dev_id);
-  filetransfer_cmd_process(pRx);
+  if(pRx->msg_id == MESG_SUBSCRIBE_REQ_MSG) {
+    struct MsgList *pr = msg_list;
+    while(pr != NULL) {
+      if(pr->info->msg_id == pRx->buffer[0]) {
+        if(*((uint32_t *)&pRx->buffer[2]) <= MESG_RATE_MAX) // max rate check
+          *(pr->info) = *(struct MsgInfo *)(&pRx->buffer[0]);
+        break;
+      } else {
+        pr = pr->next;
+      }
+    }
+  } else {
+    filetransfer_cmd_process(pRx);
+  }
 }
 
 static void mesg_decode_task(void const *argument)
