@@ -39,6 +39,9 @@ typedef struct {
   float X, Y, Z;
 } Vector3D;
 
+void NormalizeVector(Vector3D *v);
+float ScalarProduct(Vector3D *va, Vector3D *vb);
+
 void fusionQ_6dot(IMU_UNIT_6DOF *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
 void fusionQ_9dot(IMU_UNIT_9DOF *unit, Quat_T *q, float prop_gain, float intg_gain, float dt);
 void Quat2Euler(Quat_T* q, Euler_T* eur);
