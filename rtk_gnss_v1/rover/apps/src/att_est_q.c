@@ -25,6 +25,18 @@ static IMU_UNIT_6DOF imu_unit;
 static uint32_t imu_selftest_done = 0;
 static uint32_t gyr_peace_flag = 0;
 
+static uint32_t msg_quat_ts = 0;
+static struct MsgInfo msg_quat = {
+  TYPE_QUAT_Info_Resp,
+  1,
+  100
+};
+
+static struct MsgList msg_list_quat = {
+  &msg_quat,
+  NULL
+};
+
 static void imu_peace_check(_3AxisUnit *pgyr);
 
 void att_est_q_task(void const *argument)
@@ -34,7 +46,7 @@ void att_est_q_task(void const *argument)
   float delta_t = 1e-3;
   uint32_t last_t_us = 0, delta_t_us = 0;
 
-  uint32_t time_now, time_start = 0;//, tcnt = 0;
+  uint32_t time_now;//, tcnt = 0;
 
   ky_info("att est task start.\n");
   osDelay(100);
@@ -70,6 +82,8 @@ void att_est_q_task(void const *argument)
     }
   }
 
+  mesg_publish_mesg(&msg_list_quat);
+
   for(;;) {
     /* read IMU data form sensor */
     if(icm42605_read(&imu_raw, &imu_unit, osWaitForever) == status_ok) {
@@ -86,13 +100,17 @@ void att_est_q_task(void const *argument)
       fusionQ_6dot(&imu_unit, &est_q, 5, 0, delta_t);
       Quat2Euler(&est_q, &est_e);
 
-      /* TEST CODE */
+      /* update message */
       time_now = xTaskGetTickCountFromISR();
-      if((time_now - time_start) >= 10) {
-        time_start = time_now;
 
-        mesg_send_mesg((const void *)&est_q, TYPE_QUAT_Info_Resp, sizeof(Quat_T));
+      if(msg_quat.msg_st & 0x01) {
+        if((time_now - msg_quat_ts) >= 1000 / msg_quat.msg_rt) {
+          msg_quat_ts = time_now;
+          mesg_send_mesg((const void *)&est_q, TYPE_QUAT_Info_Resp, sizeof(Quat_T));
+        }
+      }
 
+/* TEST CODE */
 //        tcnt ++;
 //        led_on(LED_BLUE);
 //        if(tcnt & 1)
@@ -104,7 +122,6 @@ void att_est_q_task(void const *argument)
 //          ky_info("pitch: %2.2f, roll: %2.2f, yaw: %2.2f  [%2d%%]\n", est_e.pitch, est_e.roll, est_e.yaw, osGetCPUUsage());
 //        led_off(LED_BLUE);
 //        ky_info("pitch: %2.2f, roll: %2.2f, yaw: %2.2f -%d-  [%2d%%]\n", est_e.pitch, est_e.roll, est_e.yaw, gyr_peace_flag, osGetCPUUsage());
-      }
     }
   }
 }
