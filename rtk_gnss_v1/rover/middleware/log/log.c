@@ -57,4 +57,13 @@ status_t log_write(const char *format, ...)
   return status_ok;
 }
 
+uint32_t log_timestamp(void)
+{
+  if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED) {
+    return 0;
+  }
+
+  return xTaskGetTickCount() * (1000 / configTICK_RATE_HZ);
+}
+
 #endif /* DEBUG_ENABLE */
