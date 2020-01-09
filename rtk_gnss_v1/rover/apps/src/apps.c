@@ -1,6 +1,8 @@
 #include "apps.h"
 #include "test_case.h"
 
+static const char *TAG = "APP";
+
 static void led_thread(void const *argument);
 
 #define STR1(R) #R
@@ -32,12 +34,12 @@ void APP_StartThread(void const *argument)
   comif_init();
   log_init(comif_tx_string_util);
   osDelay(500);
-  ky_alert("!!!KERNEL START!!!\n");
+  comif_tx_string_util("!!!KERNEL START!!!\n");
   comif_tx_string_util(SystemInfo);
 
   // mount FATFS logic driver
   if(fatfs_mount() != status_ok) {
-    ky_err("ERROR: FS INIT FAIL! EXIT!\n");
+    ky_err(TAG, "ERROR: FS INIT FAIL! EXIT!");
     vTaskDelete(NULL);
   }
 
@@ -50,19 +52,19 @@ void APP_StartThread(void const *argument)
   osThreadDef(MESG, mesg_proc_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4); // stack size = 512B
   osThreadDef(FILE, transfile_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 4); // stack size = 512B
 
-  if(osThreadCreate(osThread(SINS), NULL) == NULL) ky_err("sins task create failed.\n");
-  if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err("gnss task create failed.\n");
-  if(osThreadCreate(osThread(RTCM), NULL) == NULL) ky_err("rtcm task create failed.\n");
+  if(osThreadCreate(osThread(SINS), NULL) == NULL) ky_err(TAG, "sins task create failed.");
+  if(osThreadCreate(osThread(GNSS), NULL) == NULL) ky_err(TAG, "gnss task create failed.");
+  if(osThreadCreate(osThread(RTCM), NULL) == NULL) ky_err(TAG, "rtcm task create failed.");
 #if (TEST_CASE_TASK_ENABLE)
-  if(osThreadCreate(osThread(TEST), NULL) == NULL) ky_err("test task create failed.\n");
+  if(osThreadCreate(osThread(TEST), NULL) == NULL) ky_err(TAG, "test task create failed.");
 #endif /* (TEST_CASE_TASK_ENABLE) */
-  if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err("mesg task create failed.\n");
-  if(osThreadCreate(osThread(FILE), NULL) == NULL) ky_err("file task create failed.\n");
+  if(osThreadCreate(osThread(MESG), NULL) == NULL) ky_err(TAG, "mesg task create failed.");
+  if(osThreadCreate(osThread(FILE), NULL) == NULL) ky_err(TAG, "file task create failed.");
 
   /* LED INDICATOR TASK */
   osThreadDef(LEDS, led_thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE); // stack size = 128B
 
-  if(osThreadCreate(osThread(LEDS), NULL) == NULL) ky_err("leds task create failed.\n");
+  if(osThreadCreate(osThread(LEDS), NULL) == NULL) ky_err(TAG, "leds task create failed.");
 
   vTaskDelete(NULL);
 }

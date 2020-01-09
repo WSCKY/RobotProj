@@ -1,6 +1,8 @@
 #include "gnss.h"
 #include <stdio.h>
 
+static const char *TAG = "GNSS";
+
 osThreadId decodeThreadHandle, f9pThreadHandle_a, f9pThreadHandle_b;
 
 ubx_handle_t gnss_f9p_a, gnss_f9p_b;
@@ -46,17 +48,17 @@ void gnss_navg_task(void const *argument)
 #endif
   osDelay(1000); // wait for f9p ready
 
-  ky_info("f9p if init ok.\n");
+  ky_info(TAG, "f9p if init ok.");
 
   osThreadDef(F9PA, f9p_proc_task_a, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(F9PB, f9p_proc_task_b, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   osThreadDef(UBX_DECODE, ubx_decode_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE * 2);
   f9pThreadHandle_a = osThreadCreate(osThread(F9PA), NULL);
-  if(f9pThreadHandle_a == NULL) ky_err("f9p proc task a failed.\n");
+  if(f9pThreadHandle_a == NULL) ky_err(TAG, "f9p proc task a failed.");
   f9pThreadHandle_b = osThreadCreate(osThread(F9PB), NULL);
-  if(f9pThreadHandle_b == NULL) ky_err("f9p proc task b failed.\n");
+  if(f9pThreadHandle_b == NULL) ky_err(TAG, "f9p proc task b failed.");
   decodeThreadHandle = osThreadCreate(osThread(UBX_DECODE), NULL);
-  if(decodeThreadHandle == NULL) ky_err("f9p decode task failed.\n");
+  if(decodeThreadHandle == NULL) ky_err(TAG, "f9p decode task failed.");
 
   vTaskDelete(NULL);
 }
@@ -84,7 +86,7 @@ static void f9p_proc_task_a(void const *argument)
 {
   uint16_t _ubx_ack_ack_exp;
   uint32_t config_cnt_a, check_cnt_a;
-  ky_info("f9p a uart1 config.\n");
+  ky_info(TAG, "f9p a uart1 config.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_PRT;
   config_cnt_a = 3;
   while(config_cnt_a --) {
@@ -99,13 +101,13 @@ static void f9p_proc_task_a(void const *argument)
       osDelay(500);
     }
     if(_ubx_ack_ack_exp == _ubx_ack_ack_a) {
-      ky_info("f9p a uart1 config done.\n");
+      ky_info(TAG, "f9p a uart1 config done.");
       break; // config done.
     } else {
       ubxaif_set_baudrate(38400);
     }
   }
-  ky_info("f9p a set rate to 20Hz.\n");
+  ky_info(TAG, "f9p a set rate to 20Hz.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_RATE;
   _ubx_ack_ack_a = 0x0000;
   config_cnt_a = 3;
@@ -113,12 +115,12 @@ static void f9p_proc_task_a(void const *argument)
     f9p_nav_rate_config(&gnss_f9p_a, 50, 1, TIME_SYSTEM_GPS); // measure rate: 10Hz(100ms), nav rate: 1 cycle, time_ref: UTC
     osDelay(500);
     if(_ubx_ack_ack_a == _ubx_ack_ack_exp) {
-      ky_info("f9p a rate config done.\n");
+      ky_info(TAG, "f9p a rate config done.");
       break;
     }
   }
 
-  ky_info("f9p a poll npvts packet.\n");
+  ky_info(TAG, "f9p a poll npvts packet.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_MSG;
   _ubx_ack_ack_a = 0x0000;
   config_cnt_a = 3;
@@ -126,12 +128,12 @@ static void f9p_proc_task_a(void const *argument)
     f9p_msg_rate_config(&gnss_f9p_a, UBX_NAV, UBX_NAV_PVT, 1);
     osDelay(500);
     if(_ubx_ack_ack_a == _ubx_ack_ack_exp) {
-      ky_info("f9p a npvts msg enabled.\n");
+      ky_info(TAG, "f9p a npvts msg enabled.");
       break;
     }
   }
 
-  ky_info("f9p a configure done.\n");
+  ky_info(TAG, "f9p a configure done.");
 //  vTaskDelete(NULL);
   for(;;) {
     osDelay(2000);
@@ -145,7 +147,7 @@ static void f9p_proc_task_b(void const *argument)
 {
   uint16_t _ubx_ack_ack_exp;
   uint32_t config_cnt_b, check_cnt_b;
-  ky_info("f9p b uart1 config.\n");
+  ky_info(TAG, "f9p b uart1 config.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_PRT;
   config_cnt_b = 3;
   while(config_cnt_b --) {
@@ -160,13 +162,13 @@ static void f9p_proc_task_b(void const *argument)
       osDelay(500);
     }
     if(_ubx_ack_ack_exp == _ubx_ack_ack_b) {
-      ky_info("f9p b uart1 config done.\n");
+      ky_info(TAG, "f9p b uart1 config done.");
       break; // config done.
     } else {
       ubxbif_set_baudrate(38400);
     }
   }
-  ky_info("f9p b set rate to 20Hz.\n");
+  ky_info(TAG, "f9p b set rate to 20Hz.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_RATE;
   _ubx_ack_ack_b = 0x0000;
   config_cnt_b = 3;
@@ -174,12 +176,12 @@ static void f9p_proc_task_b(void const *argument)
     f9p_nav_rate_config(&gnss_f9p_b, 50, 1, TIME_SYSTEM_UTC); // measure rate: 10Hz(100ms), nav rate: 1 cycle, time_ref: UTC
     osDelay(500);
     if(_ubx_ack_ack_b == _ubx_ack_ack_exp) {
-      ky_info("f9p b rate config done.\n");
+      ky_info(TAG, "f9p b rate config done.");
       break;
     }
   }
 
-  ky_info("f9p b poll npvts packet.\n");
+  ky_info(TAG, "f9p b poll npvts packet.");
   _ubx_ack_ack_exp = ((uint16_t)UBX_CFG << 8) + UBX_CFG_MSG;
   _ubx_ack_ack_b = 0x0000;
   config_cnt_b = 3;
@@ -187,12 +189,12 @@ static void f9p_proc_task_b(void const *argument)
     f9p_msg_rate_config(&gnss_f9p_b, UBX_NAV, UBX_NAV_PVT, 1);
     osDelay(500);
     if(_ubx_ack_ack_b == _ubx_ack_ack_exp) {
-      ky_info("f9p b npvts msg enabled.\n");
+      ky_info(TAG, "f9p b npvts msg enabled.");
       break;
     }
   }
 
-  ky_info("f9p b configure done.\n");
+  ky_info(TAG, "f9p b configure done.");
 //  vTaskDelete(NULL);
   for(;;) {
     osDelay(2000);
@@ -205,7 +207,7 @@ static void ubx_decode_task(void const *argument)
 {
   uint8_t rx_cache[128];
   uint32_t rx_len = 0, cnt = 0;
-  ky_info("f9p decode task.\n");
+  ky_info(TAG, "f9p decode task.");
   for(;;) {
     osDelay(2);
     cnt = 0;

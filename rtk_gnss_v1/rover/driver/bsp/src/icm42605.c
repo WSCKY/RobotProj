@@ -11,6 +11,8 @@
 #include <math.h>
 #include <string.h>
 
+static const char *TAG = "MEMS";
+
 #define IMU_CACHE_SIZE                           20
 
 #define IMU_GYR_OFFSET_MIN_VAL                   (0.03125f)
@@ -138,7 +140,7 @@ status_t icm42605_init(void)
   IMU_DRV_CHECK_ASSERT( imu_write_reg(REG_REG_BANK_SEL, IMU_BANK_SEL_0) );
   IMU_DRV_CHECK_ASSERT(imu_read_reg(REG_WHO_AM_I, 1));
   if(imu_rx_buffer[1] != IMU_ID) {
-	  ky_err("icm42605 read id failed.\n");
+	  ky_err(TAG, "icm42605 read id failed.");
 	  return status_error;
   }
 
@@ -212,7 +214,7 @@ status_t icm42605_init(void)
   memset(imu_rx_buffer, 0, IMU_CACHE_SIZE);
 
   icm42605_init_flag = 1;
-  ky_info("icm42605 initialized.\n");
+  ky_info(TAG, "icm42605 initialized.");
 
   return status_ok;
 }

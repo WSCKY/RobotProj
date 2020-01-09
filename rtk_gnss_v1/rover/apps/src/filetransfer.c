@@ -7,6 +7,8 @@
 
 #include "filetransfer.h"
 
+static const char *TAG = "FT";
+
 static FileTransReq_T currentReq;
 static FileTransData_T currentData;
 static FileTransAck_T currentAck;
@@ -36,7 +38,7 @@ void transfile_task(void const *argument)
   f_dat_sem = osSemaphoreCreate(osSemaphore(F_DAT_SEM), 1);
   f_ack_sem = osSemaphoreCreate(osSemaphore(F_ACK_SEM), 1);
   if(f_req_sem == NULL || f_dat_sem == NULL || f_ack_sem == NULL) {
-    ky_err("file transfer task exit!.\n");
+    ky_err(TAG, "file transfer task exit!.");
     osSemaphoreDelete(f_req_sem);
     osSemaphoreDelete(f_dat_sem);
     osSemaphoreDelete(f_ack_sem);
@@ -64,31 +66,31 @@ static void file_list_content(void)
   DIR *dir;
   FILINFO *fno;
   FileTransAck_T OperateAck;
-  ky_info("list dir %s.\n", currentReq.Filename);
+  ky_info(TAG, "list dir %s.", currentReq.Filename);
   currentReq.OptCmd = F_OPT_NULL;
   OperateAck.OptCmd = F_OPT_LIST;
   dir = kmm_alloc(sizeof(DIR));
   fno = kmm_alloc(sizeof(FILINFO));
   if(dir == NULL || fno == NULL) {
-    ky_err("no memory.\n");
+    ky_err(TAG, "no memory.");
     OperateAck.OptSta = 20; // memory alloc failed.
   } else {
     ret = f_opendir(dir, (const TCHAR *)currentReq.Filename);
     if(ret != FR_OK) {
-      ky_err("open %s failed.\n", currentReq.Filename);
+      ky_err(TAG, "open %s failed.", currentReq.Filename);
     } else {
       n_len = 0;
       f_idx = 0;
       do {
         ret = f_readdir(dir, fno);
         if(ret != FR_OK) {
-          ky_err("read %s failed.\n", currentReq.Filename);
+          ky_err(TAG, "read %s failed.", currentReq.Filename);
           break;
         } else if(fno->fname[0] == 0) {
-          ky_err("read %s done.\n", currentReq.Filename);
+          ky_err(TAG, "read %s done.", currentReq.Filename);
           break;
         } else {
-          ky_info("%s: name: %s, size: %d, altname: %s.\n", currentReq.Filename, fno->fname, fno->fsize, fno->altname);
+          ky_info(TAG, "%s: name: %s, size: %ld, altname: %s.", currentReq.Filename, fno->fname, fno->fsize, fno->altname);
           currentData.FileInfo.FileId = f_idx ++;
           currentData.FileInfo.FileAttr = fno->fattrib;
           n_len = MIN(FILETRANSFER_FILENAME_LEN / 2, strlen(fno->fname));
@@ -105,7 +107,7 @@ static void file_list_content(void)
       } while(1);
       ret = f_closedir(dir);
       if(ret != FR_OK) {
-        ky_err("close directory failed.\n");
+        ky_err(TAG, "close directory failed.");
       }
     }
     OperateAck.OptSta = ret;
@@ -124,17 +126,17 @@ static void file_upload(void)
   FIL *file;
   UINT bytes_rd;
   FileTransAck_T OperateAck;
-  ky_info("send file %s.\n", currentReq.Filename);
+  ky_info(TAG, "send file %s.", currentReq.Filename);
   currentReq.OptCmd = F_OPT_NULL;
   OperateAck.OptCmd = F_OPT_RECV;
   file = kmm_alloc(sizeof(FIL));
   if(file == NULL) {
-    ky_err("no memory.\n");
+    ky_err(TAG, "no memory.");
     OperateAck.OptSta = 20; // memory alloc failed.
   } else {
     ret = f_open(file, (const TCHAR *)currentReq.Filename, FA_READ);
     if(ret != FR_OK) {
-      ky_err("failed to read file.\n");
+      ky_err(TAG, "failed to read file.");
     } else {
       d_idx = 0;
       do {
@@ -157,7 +159,7 @@ static void file_upload(void)
       } while(1);
       ret = f_close(file);
       if(ret != FR_OK) {
-        ky_err("failed to close file.\n");
+        ky_err(TAG, "failed to close file.");
       }
     }
     OperateAck.OptSta = ret;
@@ -173,17 +175,17 @@ static void file_download(void)
   FIL *file;
   UINT bytes_wr;
   FileTransAck_T OperateAck;
-  ky_info("load file %s.\n", currentReq.Filename);
+  ky_info(TAG, "load file %s.", currentReq.Filename);
   currentReq.OptCmd = F_OPT_NULL;
   OperateAck.OptCmd = F_OPT_SEND;
   file = kmm_alloc(sizeof(FIL));
   if(file == NULL) {
-    ky_err("no memory.\n");
+    ky_err(TAG, "no memory.");
     OperateAck.OptSta = 20; // memory alloc failed.
   } else {
     ret = f_open(file, (const TCHAR *)currentReq.Filename, FA_CREATE_ALWAYS | FA_WRITE);
     if(ret != FR_OK) {
-      ky_err("failed to open file.\n");
+      ky_err(TAG, "failed to open file.");
     } else {
       p_idx = 0;
       do {
@@ -200,7 +202,7 @@ static void file_download(void)
           if(currentData.FileData.DataLen != 0) { // check if last package.
             ret = f_write(file, currentData.FileData.fData, currentData.FileData.DataLen, (void *)&bytes_wr);
             if(bytes_wr != currentData.FileData.DataLen || ret != FR_OK) {
-              ky_err("file write error. %d\n", ret);
+              ky_err(TAG, "file write error. %d", ret);
               break;
             } // then request next package if all is successful.
           } else {
@@ -208,10 +210,10 @@ static void file_download(void)
           }
         }
       } while(1);
-      ky_info("wrote %d packages.\n", p_idx);
+      ky_info(TAG, "wrote %d packages.", p_idx);
       ret = f_close(file);
       if(ret != FR_OK) {
-        ky_err("failed to close file.\n");
+        ky_err(TAG, "failed to close file.");
       }
     }
     OperateAck.OptSta = ret;
@@ -225,33 +227,33 @@ static void file_create(void)
 {
   FRESULT ret;
   FileTransAck_T OperateAck;
-  ky_info("create %s.\n", currentReq.Filename);
+  ky_info(TAG, "create %s.", currentReq.Filename);
   currentReq.OptCmd = F_OPT_NULL;
   OperateAck.OptCmd = F_OPT_CREATE;
   if((currentReq.CreateObj.FileAttr & AM_DIR) == 0) {
-    ky_info("create FILE.\n");
+    ky_info(TAG, "create FILE.");
     FIL *file = kmm_alloc(sizeof(FIL));
     if(file == NULL) {
-      ky_err("no memory.\n");
+      ky_err(TAG, "no memory.");
       OperateAck.OptSta = 20; // memory alloc failed.
     } else {
       ret = f_open(file, (const TCHAR *)currentReq.Filename, FA_CREATE_ALWAYS);
       if(ret != FR_OK) {
-        ky_err("failed to create file.\n");
+        ky_err(TAG, "failed to create file.");
       } else {
         ret = f_close(file);
         if(ret != FR_OK) {
-          ky_err("close failed.\n");
+          ky_err(TAG, "close failed.");
         }
       }
       OperateAck.OptSta = ret;
     }
     kmm_free(file);
   } else {
-    ky_info("create DIR.\n");
+    ky_info(TAG, "create DIR.");
     ret = f_mkdir((const TCHAR *)currentReq.Filename);
     if(ret != FR_OK) {
-      ky_err("create DIR failed.\n");
+      ky_err(TAG, "create DIR failed.");
     }
     OperateAck.OptSta = ret;
   }
@@ -261,7 +263,7 @@ static void file_create(void)
 static void file_delete(void)
 {
   FileTransAck_T OperateAck;
-  ky_info("delete %s.\n", currentReq.Filename);
+  ky_info(TAG, "delete %s.", currentReq.Filename);
   currentReq.OptCmd = F_OPT_NULL;
   OperateAck.OptCmd = F_OPT_DELETE;
   OperateAck.OptSta = f_unlink((const TCHAR *)currentReq.Filename);

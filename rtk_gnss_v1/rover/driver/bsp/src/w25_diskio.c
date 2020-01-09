@@ -9,6 +9,8 @@
 #include "drivers.h"
 #include "ff_gen_drv.h"
 
+static const char *TAG = "DISK";
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define CONFIG_MTD_SECTOR_SIZE                   (4096)
@@ -54,7 +56,7 @@ const Diskio_drvTypeDef mtd_driver = {
 static DSTATUS mtd_initialize(BYTE lun)
 {
   if(w25qxx_init() != status_ok) {
-    ky_err("failed to initialize w25qxx.\n");
+    ky_err(TAG, "failed to initialize w25qxx.");
     return Stat;
   }
 
@@ -87,7 +89,7 @@ static DRESULT mtd_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
   if(w25qxx_read_bytes((uint8_t *)buff, sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH) == status_ok) {
     res = RES_OK;
   }
-//  ky_info("read 0x%x, 0x%x\n", sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH);
+//  ky_info(TAG, "read 0x%x, 0x%x", sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH);
   return res;
 }
 
@@ -98,7 +100,7 @@ static DRESULT mtd_write (BYTE lun, const BYTE *buff, DWORD sector, UINT count)
   if(w25qxx_write_bytes((uint8_t *)buff, sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH) == status_ok) {
     res = RES_OK;
   }
-//  ky_info("write 0x%x, 0x%x\n", sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH);
+//  ky_info(TAG, "write 0x%x, 0x%x", sector << CONFIG_SECTOR_SIZE_LSH, count << CONFIG_SECTOR_SIZE_LSH);
   return res;
 }
 #endif /* _USE_WRITE == 1 */

@@ -1,6 +1,8 @@
 #include "server.h"
 #include "kyLink.h"
 
+static const char *TAG = "RTCM";
+
 static ubx_npvts_t *p_npvts;
 KYLINK_CORE_HANDLE kylink_server;
 //static kyLinkPackageDef tx_packet;
@@ -34,19 +36,19 @@ void rtcm_transfer_task(void const *argument)
   osDelay(3000);
   ec20if_init();
   rtcmif_init();
-  ky_info("ec20 & rtcm uart init.\n");
+  ky_info(TAG, "ec20 & rtcm uart init.");
   if(ec20_check_ack((uint8_t *)"RDY\r\n", 8000) != status_ok)
-	  ky_warn("ec20 poweron check error.\n");
+	  ky_warn(TAG, "ec20 poweron check error.");
   else
-	  ky_info("ec20 powered.\n");
+	  ky_info(TAG, "ec20 powered.");
   osDelay(1000);
-  ky_info("wait f9p a/b stable.\n");
+  ky_info(TAG, "wait f9p a/b stable.");
   while(check_rtk_rover_ready() == false) {
     osDelay(1000);
   }
   p_npvts = get_npvts_a();
 
-  ky_info("ec20 connect to server.\n");
+  ky_info(TAG, "ec20 connect to server.");
 //  ret = false;
 //  if(ec20_check_cmd_ack((uint8_t *)"AT\r\n", (uint8_t *)"AT\r\r\nOK\r\n", 5, 1000) == status_ok) {
 //    dbg_str("ec20 test done.\n");
@@ -116,7 +118,7 @@ static void kylink_decode_cb(kyLinkBlockDef *pRx)
   if(_kylink_dev_msg_group == 0x0001) {
     if(rover_to_server_step == 0) {
       rover_to_server_step ++;
-      ky_info("got response from server.\n");
+      ky_info(TAG, "got response from server.");
     }
   }
   if(_kylink_dev_msg_group == 0x0061) {
@@ -129,7 +131,7 @@ static void kylink_decode_cb(kyLinkBlockDef *pRx)
 //        tx_packet.FormatData.PacketData.TypeData.LocationInfo.info_type = 0x01;
 //        tx_packet.FormatData.PacketData.TypeData.LocationInfo.lon = p_npvts->lon;
 //        tx_packet.FormatData.PacketData.TypeData.LocationInfo.lat = p_npvts->lat;
-        ky_info("send postion info to server.\n");
+        ky_info(TAG, "send postion info to server.");
       }
     }
   }

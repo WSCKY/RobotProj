@@ -5,6 +5,8 @@
 #include "cpu_utils.h"
 #include "ff_gen_drv.h"
 
+static const char *TAG = "TEST";
+
 void test_fatfs(void);
 void test_w25qxx(void);
 void scan_i2c_dev(void);
@@ -16,7 +18,7 @@ static void print_buffer(char *tag, uint8_t *buf, uint32_t size);
 void test_case_task(void const *argument)
 {
   (void) argument;
-  ky_info("test case task start.\n");
+  ky_info(TAG, "test case task start.");
   osDelay(500);
 
 //  scan_i2c_dev();
@@ -25,7 +27,7 @@ void test_case_task(void const *argument)
 //  test_fatfs();
   list_file_fatfs();
 
-  ky_info("test done.\n");
+  ky_info(TAG, "test done.");
 
   vTaskDelete(NULL);
 }
@@ -40,31 +42,31 @@ static void list_dir(const TCHAR *path)
   dir = kmm_alloc(sizeof(DIR));
   fno = kmm_alloc(sizeof(FILINFO));
   if(dir == NULL || fno == NULL) {
-    ky_err("no memory for test.\n");
+    ky_err(TAG, "no memory for test.");
     goto exit;
   }
   ret = f_opendir(dir, path);
   if(ret != FR_OK) {
-    ky_err("open dir 0:/ failed.\n");
+    ky_err(TAG, "open dir 0:/ failed.");
     goto exit;
   }
 
   do {
     ret = f_readdir(dir, fno);
     if(ret != FR_OK) {
-      ky_err("read %s failed.\n", path);
+      ky_err(TAG, "read %s failed.", path);
       break;
     } else if(fno->fname[0] == 0) {
-      ky_info("%s read done.\n", path);
+      ky_info(TAG, "%s read done.", path);
       break;
     } else {
-      ky_info("%s: name: %s, size: %d, altname: %s.\n", path, fno->fname, fno->fsize, fno->altname);
+      ky_info(TAG, "%s: name: %s, size: %ld, altname: %s.", path, fno->fname, fno->fsize, fno->altname);
     }
   } while(1);
 
   ret = f_closedir(dir);
   if(ret != FR_OK) {
-    ky_err("close directory failed.\n");
+    ky_err(TAG, "close directory failed.");
     goto exit;
   }
 
@@ -78,17 +80,17 @@ void list_file_fatfs(void)
   FRESULT ret;
 
   ret = f_mkdir("0:/calib");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
   ret = f_mkdir("0:/firmware");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
   ret = f_mkdir("0:/start");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
   ret = f_mkdir("0:/calib/acc");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
   ret = f_mkdir("0:/calib/gyr");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
   ret = f_mkdir("0:/calib/mag");
-  ky_info("mkdir ret -%d.\n", ret);
+  ky_info(TAG, "mkdir ret -%d.", ret);
 
   list_dir("0:/");
   list_dir("0:/calib");
@@ -106,51 +108,51 @@ void test_fatfs(void)
   FIL *file;
   file = kmm_alloc(sizeof(FIL));
   if(file == NULL) {
-    ky_err("no enough memory.\n");
+    ky_err(TAG, "no enough memory.");
     return;
   }
 
-  ky_info("open file HELLO.txt\n");
+  ky_info(TAG, "open file HELLO.txt");
   ret = f_open(file, "HELLO.txt", FA_CREATE_ALWAYS | FA_WRITE);
   if(ret != FR_OK) {
-    ky_err("failed to open/create file. %d\n", ret);
+    ky_err(TAG, "failed to open/create file. %d", ret);
     goto exit;
   }
 
-  ky_info("write data(%s) to file.\n", test_str);
+  ky_info(TAG, "write data(%s) to file.", test_str);
   ret = f_write(file, test_str, sizeof(test_str), (void *)&bytes_rw);
   if(bytes_rw == 0 || ret != FR_OK) {
-    ky_err("file write error. %d\n", ret);
+    ky_err(TAG, "file write error. %d", ret);
     goto exit;
   }
 
-  ky_info("close file.\n");
+  ky_info(TAG, "close file.");
   ret = f_close(file);
   if(ret != FR_OK) {
-    ky_err("failed to close file.\n");
+    ky_err(TAG, "failed to close file.");
     goto exit;
   }
 
-  ky_info("open file again\n");
+  ky_info(TAG, "open file again");
   ret = f_open(file, "HELLO.txt", FA_READ);
   if(ret != FR_OK) {
-    ky_err("failed to open/read file. %d\n", ret);
+    ky_err(TAG, "failed to open/read file. %d", ret);
     goto exit;
   }
 
-  ky_info("read data from file.\n");
+  ky_info(TAG, "read data from file.");
   ret = f_read(file, rtext, sizeof(rtext), (UINT*)&bytes_rw);
   if(bytes_rw == 0 || ret != FR_OK) {
-    ky_err("file read error. %d\n", ret);
+    ky_err(TAG, "file read error. %d", ret);
     goto exit;
   }
 
-  ky_info("data in file: %s\n", rtext);
+  ky_info(TAG, "data in file: %s", rtext);
 
-  ky_info("close file.\n");
+  ky_info(TAG, "close file.");
   ret = f_close(file);
   if(ret != FR_OK) {
-    ky_err("failed to close file.\n");
+    ky_err(TAG, "failed to close file.");
   }
 
 exit:
@@ -165,14 +167,14 @@ void test_w25qxx(void)
   uint32_t waddr = 3456;
   uint8_t *wcache, *rcache;
   if(w25qxx_init() != status_ok) {
-    ky_err("failed to initialize w25qxx.\n");
+    ky_err(TAG, "failed to initialize w25qxx.");
     return;
   }
   if(w25qxx_read_id(id) != status_ok) {
-    ky_err("read w25qxx's id failed.\n");
+    ky_err(TAG, "read w25qxx's id failed.");
     return;
   }
-  ky_info("w25qxx device id: 0x%x, 0x%x, 0x%x\n", id[0], id[1], id[2]);
+  ky_info(TAG, "w25qxx device id: 0x%x, 0x%x, 0x%x", id[0], id[1], id[2]);
 //  switch(id) {
 //  case W25Q16: ky_info("w25q16 detected.\n"); break;
 //  case W25Q32: ky_info("w25q32 detected.\n"); break;
@@ -182,15 +184,15 @@ void test_w25qxx(void)
 //  }
 //  w25qxx_erase_chip();
   if(w25qxx_write_unprotect() != status_ok) {
-    ky_err("unprotect w25qxx fail.\n");
+    ky_err(TAG, "unprotect w25qxx fail.");
     return;
   }
-  ky_info("flash read & write test.\n");
-  ky_info("write %d bytes to 0x%x.\n", wbytes, waddr);
+  ky_info(TAG, "flash read & write test.");
+  ky_info(TAG, "write %d bytes to 0x%lx.", wbytes, waddr);
   wcache = kmm_alloc(wbytes);
   rcache = kmm_alloc(wbytes);
   if(wcache == NULL || rcache == NULL) {
-    ky_err("no memory for test.\n");
+    ky_err(TAG, "no memory for test.");
     return;
   }
   memset(rcache, 0x00, wbytes);
@@ -199,17 +201,17 @@ void test_w25qxx(void)
   }
   print_buffer("wcache", wcache, wbytes);
 
-  ky_info("write start ...\n");
+  ky_info(TAG, "write start ...");
   if(w25qxx_write_bytes(wcache, waddr, wbytes) != status_ok) {
-    ky_err("write failed.\n");
+    ky_err(TAG, "write failed.");
     kmm_free(wcache);
     kmm_free(rcache);
     return;
   }
   osDelay(100);
-  ky_info("read start ...\n");
+  ky_info(TAG, "read start ...");
   if(w25qxx_read_bytes(rcache, waddr, wbytes) != status_ok) {
-    ky_err("read failed.\n");
+    ky_err(TAG, "read failed.");
     kmm_free(wcache);
     kmm_free(rcache);
     return;
@@ -228,7 +230,7 @@ void test_w25qxx(void)
 //  }
 //  print_buffer("rcache", rcache, wbytes);
 
-  ky_info("compare data ...\n");
+  ky_info(TAG, "compare data ...");
   int i = 0;
   do {
     if(rcache[i] != wcache[i]) {
@@ -238,9 +240,9 @@ void test_w25qxx(void)
   } while(i < wbytes);
 
   if(i < wbytes) {
-    ky_err("w25qxx test failed.-%d\n", i);
+    ky_err(TAG, "w25qxx test failed.-%d", i);
   } else {
-    ky_info("w25qxx test success.\n");
+    ky_info(TAG, "w25qxx test success.");
   }
   kmm_free(wcache);
   kmm_free(rcache);
@@ -253,13 +255,13 @@ void test_w25qxx(void)
 
 static void print_buffer(char *tag, uint8_t *buf, uint32_t size)
 {
-  ky_info("\n%s: %d bytes: \n    ", tag, size);
+  log_write("\n%s: %ld bytes: \n    ", tag, size);
   for(int i = 0; i < size; i ++) {
-	ky_info("%02x  ", buf[i]);
+	log_write("%02x  ", buf[i]);
 	if((i & 0xF) == 0xF)
-	  ky_info("\n    ");
+	  log_write("\n    ");
   }
-  ky_info("\n");
+  log_write("\n");
 }
 
 void check_ist83xx(void)
@@ -270,7 +272,7 @@ void check_ist83xx(void)
   ist83xx_dev_t *ist8310_a = kmm_alloc(sizeof(ist83xx_dev_t));
   ist83xx_dev_t *ist8310_b = kmm_alloc(sizeof(ist83xx_dev_t));
   if((ist8310_a == NULL) || (ist8310_b == NULL)) {
-    ky_err("ist8310 memory alloc failed. EXIT!\n");
+    ky_err(TAG, "ist8310 memory alloc failed. EXIT!");
     return;
   }
 
@@ -281,13 +283,13 @@ void check_ist83xx(void)
   ist8310_a->read_reg = ist8310_b->read_reg = magif_read_mem_dma;
   ist8310_a->write_reg = ist8310_b->write_reg = magif_write_mem_dma;
 
-  ky_info("init ist8310 a.\n");
+  ky_info(TAG, "init ist8310 a.");
   if(ist83xx_init(ist8310_a) != status_ok) {
-    ky_err("ist8310 a init failed.\n");
+    ky_err(TAG, "ist8310 a init failed.");
   }
-  ky_info("init ist8310 b.\n");
+  ky_info(TAG, "init ist8310 b.");
   if(ist83xx_init(ist8310_b) != status_ok) {
-    ky_err("ist8310 b init failed.\n");
+    ky_err(TAG, "ist8310 b init failed.");
   }
 
   for(;;) {
@@ -297,7 +299,7 @@ void check_ist83xx(void)
     cnt ++;
     if(cnt >= 200) {
       cnt = 0;
-      ky_info("%3d, %3d, %3d;  %3d, %3d, %3d\n", ist_raw_a->X, ist_raw_a->Y, ist_raw_a->Z, ist_raw_b->X, ist_raw_b->Y, ist_raw_b->Z);
+      ky_info(TAG, "%3d, %3d, %3d;  %3d, %3d, %3d", ist_raw_a->X, ist_raw_a->Y, ist_raw_a->Z, ist_raw_b->X, ist_raw_b->Y, ist_raw_b->Z);
     }
   }
 }
@@ -307,25 +309,25 @@ void scan_i2c_dev(void)
   uint8_t devaddr = 0x00;
   uint8_t reg_val = 0x00;
   if(magif_init() != status_ok) {
-    ky_err("mag if init failed. EXIT!\n");
+    ky_err(TAG, "mag if init failed. EXIT!");
     return;
   }
 
   osDelay(100);
 
-  ky_info("scanning i2c device ...\n");
+  ky_info(TAG, "scanning i2c device ...");
   for(;;) {
     reg_val = 0x00;
     magif_read_mem_dma(devaddr, 0x00, &reg_val, 1);
     osDelay(10); // wait for transfer done.
     if((devaddr & 0x1F) == 0x00)
-      ky_info("\n\t");
+      log_write("\n\t");
     if(reg_val != 0x00)
-      ky_info("%02x  ", devaddr);
+      log_write("%02x  ", devaddr);
     else
-      ky_info("00  ");
+      log_write("00  ");
     devaddr += 2;
     if(devaddr == 0x00) break;
   }
-  ky_info("\n\nscan i2c device done.\n");
+  ky_info(TAG, "\n\nscan i2c device done.");
 }

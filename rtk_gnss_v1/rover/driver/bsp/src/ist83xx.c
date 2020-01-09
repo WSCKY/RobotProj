@@ -9,6 +9,8 @@
 
 #include <math.h>
 
+//static const char *TAG = "ISTS";
+
 #define IST_REG_AHOAMI                           (0x00)
 #  define IST_DEV_ID                             (0x10)
 #define IST_REG_STATUS_1                         (0x02)
@@ -214,9 +216,9 @@ static status_t ist83xx_crossaxis_matrix(ist83xx_dev_t *dev)
   // wait operation done.
   while(dev->io_ready() != status_ok) { ist_delay(1); };
 
-  ky_info("\n\t%02x %02x %02x %02x %02x %02x", crossxbuf[0], crossxbuf[1], crossxbuf[2], crossxbuf[3], crossxbuf[4], crossxbuf[5]);
-  ky_info("\n\t%02x %02x %02x %02x %02x %02x", crossybuf[0], crossybuf[1], crossybuf[2], crossybuf[3], crossybuf[4], crossybuf[5]);
-  ky_info("\n\t%02x %02x %02x %02x %02x %02x\n", crosszbuf[0], crosszbuf[1], crosszbuf[2], crosszbuf[3], crosszbuf[4], crosszbuf[5]);
+  log_write("\n\t%02x %02x %02x %02x %02x %02x", crossxbuf[0], crossxbuf[1], crossxbuf[2], crossxbuf[3], crossxbuf[4], crossxbuf[5]);
+  log_write("\n\t%02x %02x %02x %02x %02x %02x", crossybuf[0], crossybuf[1], crossybuf[2], crossybuf[3], crossybuf[4], crossybuf[5]);
+  log_write("\n\t%02x %02x %02x %02x %02x %02x\n", crosszbuf[0], crosszbuf[1], crosszbuf[2], crosszbuf[3], crosszbuf[4], crosszbuf[5]);
 
   if((crossxbuf[0] == 0xFF) && (crossxbuf[1] == 0xFF)) {
     memset(dev->crossaxis_inv, 0 ,9);

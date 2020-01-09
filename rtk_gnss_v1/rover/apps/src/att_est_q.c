@@ -13,7 +13,7 @@
 
 #include "cpu_utils.h"
 
-//static const char *TAG = "SINS";
+static const char *TAG = "SINS";
 
 static Euler_T est_e = {0, 0, 0};
 static Quat_T est_q = {1, 0, 0, 0};
@@ -48,14 +48,14 @@ void att_est_q_task(void const *argument)
 
   uint32_t time_now;//, tcnt = 0;
 
-  ky_info("att est task start.\n");
+  ky_info(TAG, "att est task start.");
   osDelay(100);
   if(icm42605_init() != status_ok) {
-	  ky_err("imu sensor init failed. EXIT!\n");
+	  ky_err(TAG, "imu sensor init failed. EXIT!");
 	  vTaskDelete(NULL);
 	  return;
   }
-  ky_info("keep IMU motionless ...\n");
+  ky_info(TAG, "keep IMU motionless ...");
   while(imu_selftest_done == 0) {
     /* read IMU data form sensor */
     if(icm42605_read(&imu_raw, &imu_unit, osWaitForever) == status_ok) {
@@ -63,20 +63,20 @@ void att_est_q_task(void const *argument)
       imu_peace_check(&imu_unit.Gyr);
       if(gyr_peace_flag == 1) {
         if(icm42605_selftest(&imu_raw, &st_ret) != status_ok) {
-          ky_err("imu self test faileds. EXIT!\n");
+          ky_err(TAG, "imu self test faileds. EXIT!");
           vTaskDelete(NULL);
           return;
         }
 
         if(st_ret & 0x01)
-          ky_info("gyr st PASS.\n");
+          ky_info(TAG, "gyr st PASS.");
         else
-          ky_info("gyr st FAIL.\n");
+          ky_info(TAG, "gyr st FAIL.");
 
         if(st_ret & 0x02)
-          ky_info("acc st PASS.\n");
+          ky_info(TAG, "acc st PASS.");
         else
-          ky_info("acc st FAIL.\n");
+          ky_info(TAG, "acc st FAIL.");
         imu_selftest_done = 1;
       }
     }

@@ -4,6 +4,8 @@
 
 #include "filetransfer.h"
 
+static const char *TAG = "MESG";
+
 static KYLINK_CORE_HANDLE *kylink_msg;
 
 static uint8_t *kylink_decoder_cache;
@@ -31,21 +33,21 @@ void mesg_proc_task(void const *argument)
   kyLinkConfig_t *cfg = NULL;
 
   if(cdcif_init() != status_ok) {
-    ky_err("usb cdc init failed, EXIT!\n");
+    ky_err(TAG, "usb cdc init failed, EXIT!");
     vTaskDelete(NULL);
   }
 
   osMutexDef(MSG_MUTEX);
   msg_mutex = osMutexCreate(osMutex(MSG_MUTEX));
   if(msg_mutex == NULL) {
-    ky_err("create MSG MUTEX failed, EXIT!\n");
+    ky_err(TAG, "create MSG MUTEX failed, EXIT!");
     vTaskDelete(NULL);
   }
 
   osSemaphoreDef(MSG_SEMA);
   msg_available = osSemaphoreCreate(osSemaphore(MSG_SEMA), 1);
   if(msg_available == NULL) {
-    ky_err("create MSG SEMA failed, EXIT!\n");
+    ky_err(TAG, "create MSG SEMA failed, EXIT!");
     osMutexDelete(msg_mutex);
     vTaskDelete(NULL);
   }
@@ -61,7 +63,7 @@ void mesg_proc_task(void const *argument)
     kmm_free(mesg_test_send_cache);
     osMutexDelete(msg_mutex);
     osSemaphoreDelete(msg_available);
-    ky_err("MSG memory alloc failed, EXIT!\n");
+    ky_err(TAG, "MSG memory alloc failed, EXIT!");
     vTaskDelete(NULL);
   }
 
@@ -74,10 +76,10 @@ void mesg_proc_task(void const *argument)
   kmm_free(cfg);
 
   _task_running = 1;
-  ky_info("mesg module start.\n");
+  ky_info(TAG, "mesg module start.");
 
   osThreadDef(DECODE, mesg_decode_task, osPriorityNormal, 0, configMINIMAL_STACK_SIZE); // stack size = 128B
-  if(osThreadCreate(osThread(DECODE), NULL) == NULL) ky_err("mesg decode task create failed.\n");
+  if(osThreadCreate(osThread(DECODE), NULL) == NULL) ky_err(TAG, "mesg decode task create failed.");
 
   for(;;) {
     if(osSemaphoreWait(msg_available, osWaitForever) == osOK) {
@@ -147,10 +149,10 @@ static void mesg_decode_task(void const *argument)
   uint8_t *pRxCache;
   pRxCache = kmm_alloc(128);
   if(pRxCache == NULL) {
-    ky_err("no memory for mesg decoder task.\n");
+    ky_err(TAG, "no memory for mesg decoder task.");
     vTaskDelete(NULL);
   }
-  ky_info("mesg decoder start.\n");
+  ky_info(TAG, "mesg decoder start.");
   for(;;) {
     rx_len = cdcif_rx_bytes(pRxCache, 128, osWaitForever);
     decode_cnt = 0;
