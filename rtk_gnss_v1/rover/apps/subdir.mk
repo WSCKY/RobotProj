@@ -10,6 +10,7 @@ C_SRCS += \
 ./apps/src/f9pconfig.c \
 ./apps/src/gnss.c \
 ./apps/src/server.c \
+./apps/src/compass.c \
 ./apps/src/test_case.c \
 ./apps/src/att_est_q.c \
 ./apps/src/cpu_utils.c \
@@ -22,6 +23,7 @@ $(BuildPath)/apps/apps.o \
 $(BuildPath)/apps/f9pconfig.o \
 $(BuildPath)/apps/gnss.o \
 $(BuildPath)/apps/server.o \
+$(BuildPath)/apps/compass.o \
 $(BuildPath)/apps/test_case.o \
 $(BuildPath)/apps/att_est_q.o \
 $(BuildPath)/apps/cpu_utils.o \
@@ -34,6 +36,7 @@ $(BuildPath)/apps/apps.d \
 $(BuildPath)/apps/f9pconfig.d \
 $(BuildPath)/apps/gnss.d \
 $(BuildPath)/apps/server.d \
+$(BuildPath)/apps/compass.d \
 $(BuildPath)/apps/test_case.d \
 $(BuildPath)/apps/att_est_q.d \
 $(BuildPath)/apps/cpu_utils.d \
