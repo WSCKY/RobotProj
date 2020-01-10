@@ -9,7 +9,6 @@
 
 #include "mesg.h"
 #include "ff_gen_drv.h"
-#include "algorithm.h"
 
 static const char *TAG = "MAG";
 
@@ -35,8 +34,9 @@ static osMutexId mag_mutex;
 static uint32_t msg_mag_ts = 0;
 static struct MsgInfo msg_mag = {
   MAG_DATA_MSG,
-  0, // default: disabled
-  10 // default: 10Hz
+  0,  // default: disabled
+  10, // default: 10Hz
+  {0, 0, 0, 0}
 };
 
 static struct MsgList msg_list = {

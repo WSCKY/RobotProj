@@ -10,6 +10,8 @@
 
 #include "drivers.h"
 
+#include "algorithm.h"
+
 void magnetics_task(void const *argument);
 
 int magnetics_take(Vector3D *data);
