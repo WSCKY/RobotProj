@@ -10,6 +10,7 @@
 
 #include "mesg.h"
 #include "kyLink.h"
+#include "compass.h"
 
 #include "cpu_utils.h"
 
@@ -19,7 +20,8 @@ static Euler_T est_e = {0, 0, 0};
 static Quat_T est_q = {1, 0, 0, 0};
 
 static IMU_RAW_6DOF imu_raw;
-static IMU_UNIT_6DOF imu_unit;
+static IMU_UNIT_6DOF imu_unit_6dof;
+static IMU_UNIT_9DOF imu_unit_9dof;
 
 //static _3AxisUnit gyr_off;
 static uint32_t imu_selftest_done = 0;
@@ -47,7 +49,9 @@ void att_est_q_task(void const *argument)
   float delta_t = 1e-3;
   uint32_t last_t_us = 0, delta_t_us = 0;
 
-  uint32_t time_now;//, tcnt = 0;
+  Vector3D mag_data;
+
+  uint32_t time_now;
 
   ky_info(TAG, "att est task start.");
   osDelay(100);
@@ -59,9 +63,9 @@ void att_est_q_task(void const *argument)
   ky_info(TAG, "keep IMU motionless ...");
   while(imu_selftest_done == 0) {
     /* read IMU data form sensor */
-    if(icm42605_read(&imu_raw, &imu_unit, osWaitForever) == status_ok) {
+    if(icm42605_read(&imu_raw, &imu_unit_6dof, osWaitForever) == status_ok) {
       /* check for motionless state */
-      imu_peace_check(&imu_unit.Gyr);
+      imu_peace_check(&imu_unit_6dof.Gyr);
       if(gyr_peace_flag == 1) {
         if(icm42605_selftest(&imu_raw, &st_ret) != status_ok) {
           ky_err(TAG, "imu self test faileds. EXIT!");
@@ -87,7 +91,7 @@ void att_est_q_task(void const *argument)
 
   for(;;) {
     /* read IMU data form sensor */
-    if(icm42605_read(&imu_raw, &imu_unit, osWaitForever) == status_ok) {
+    if(icm42605_read(&imu_raw, &imu_unit_6dof, osWaitForever) == status_ok) {
       /* compute delta time according to time-stamp */
       if(imu_raw.TS > last_t_us)
         delta_t_us = imu_raw.TS - last_t_us;
@@ -98,7 +102,15 @@ void att_est_q_task(void const *argument)
 
 //      imu_peace_check(&imu_unit.Gyr);
 
-      fusionQ_6dot(&imu_unit, &est_q, 5, 0, delta_t);
+      if(magnetics_take(&mag_data) == 0) {
+        imu_unit_9dof.Acc = imu_unit_6dof.Acc;
+        imu_unit_9dof.Gyr = imu_unit_6dof.Gyr;
+        imu_unit_9dof.Temp = imu_unit_6dof.Temp;
+        imu_unit_9dof.TS = imu_unit_6dof.TS;
+        imu_unit_9dof.Mag = *(_3AxisUnit *)&mag_data;
+        fusionQ_9dot(&imu_unit_9dof, &est_q, 5, 0, delta_t);
+      } else
+        fusionQ_6dot(&imu_unit_6dof, &est_q, 5, 0, delta_t);
       Quat2Euler(&est_q, &est_e);
 
       /* update message */
