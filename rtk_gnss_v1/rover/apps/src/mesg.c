@@ -118,6 +118,7 @@ void mesg_publish_mesg(struct MsgList *list)
 void mesg_send_mesg(const void *msg, uint8_t msgid, uint16_t len)
 {
   if(_task_running == 0) return;
+  if(len == 0) return;
   osMutexWait(msg_mutex, osWaitForever);
   kylink_send(kylink_msg, ( void * ) msg, msgid, len);
   osMutexRelease(msg_mutex);
