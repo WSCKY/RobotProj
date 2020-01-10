@@ -29,7 +29,8 @@ static uint32_t msg_quat_ts = 0;
 static struct MsgInfo msg_quat = {
   TYPE_QUAT_Info_Resp,
   1,
-  100
+  100,
+  {0, 0, 0, 0}
 };
 
 static struct MsgList msg_list_quat = {

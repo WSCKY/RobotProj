@@ -27,6 +27,7 @@ struct MsgInfo {
   uint8_t msg_id;
   uint8_t msg_st;
   uint32_t msg_rt;
+  uint8_t msg_pr[4];
 };
 
 struct MsgList {
