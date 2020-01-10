@@ -25,24 +25,26 @@ static struct ElipCalibData {
   float sclX, sclY, sclZ;
 } *calib_data = NULL;
 
+__PACK_BEGIN typedef struct {
+  uint8_t id;
+  _3AxisRaw raw;
+} __PACK_END MagRawDef;
+
 static uint32_t mag_calibrated = 0;
 static uint32_t mag_interference = 0;
 
 static Vector3D mag_data;
 static osMutexId mag_mutex;
 
-static uint32_t msg_mag_ts = 0;
-static struct MsgInfo msg_mag = {
-  MAG_DATA_MSG,
-  0,  // default: disabled
-  10, // default: 10Hz
-  {0, 0, 0, 0}
-};
+static uint32_t msg_mag_ts = 0; // timestamp for this message
+//                      default:      id       disabled  10Hz    parameters
+static struct MsgInfo msg_mag = { MAG_DATA_MSG,    0,     10,   {0, 0, 0, 0} };
+static uint32_t msg_mag_org_ts = 0; // timestamp for this message
+//                      default:           id          disabled  10Hz  start id    number of sensors
+static struct MsgInfo msg_mag_org = { MAG_ORG_DATA_MSG,    0,     10,     {0,    COMPASS_SENSOR_NUMBER, 0, 0} };
 
-static struct MsgList msg_list = {
-  &msg_mag,
-  NULL
-};
+static struct MsgList msg_mag_org_list = { &msg_mag_org, NULL };
+static struct MsgList msg_list = { &msg_mag, &msg_mag_org_list };
 
 static int read_calibrate_data(void);
 static int decode_calib_file(FIL *fp);
@@ -54,7 +56,7 @@ void magnetics_task(void const *argument)
   float cos_alpha;
 #endif /* (COMPASS_SENSOR_NUMBER > 1) */
   Vector3D *ist_val = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(Vector3D));
-  _3AxisRaw *ist_raw = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(_3AxisRaw));
+  MagRawDef *ist_raw = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(MagRawDef));
   calib_data = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(struct ElipCalibData));
   ist83xx_dev_t *ist_dev = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(ist83xx_dev_t));
   if((ist_val == NULL) || \
@@ -83,6 +85,7 @@ void magnetics_task(void const *argument)
       ky_err(TAG, "ist8310 %d init failed.", i);
       goto error_exit;
     }
+    ist_raw[i].id = i;
   }
 
   if(read_calibrate_data() == 0) mag_calibrated = 1;
@@ -92,11 +95,11 @@ void magnetics_task(void const *argument)
   for(;;) {
     osDelay(5); // update every 5ms.
     for(int i = 0; i < COMPASS_SENSOR_NUMBER; i ++) {
-      ist83xx_read_data(&ist_dev[i], &ist_raw[i]);
+      ist83xx_read_data(&ist_dev[i], &(ist_raw[i].raw));
       if(mag_calibrated) {
-        ist_val[i].X = (ist_raw[i].X + calib_data[i].offX) * calib_data[i].sclX;
-        ist_val[i].Y = (ist_raw[i].Y + calib_data[i].offY) * calib_data[i].sclY;
-        ist_val[i].Z = (ist_raw[i].Z + calib_data[i].offZ) * calib_data[i].sclZ;
+        ist_val[i].X = (ist_raw[i].raw.X + calib_data[i].offX) * calib_data[i].sclX;
+        ist_val[i].Y = (ist_raw[i].raw.Y + calib_data[i].offY) * calib_data[i].sclY;
+        ist_val[i].Z = (ist_raw[i].raw.Z + calib_data[i].offZ) * calib_data[i].sclZ;
         NormalizeVector(&ist_val[i]);
       }
     }
@@ -110,6 +113,7 @@ void magnetics_task(void const *argument)
       }
 #endif /* (COMPASS_SENSOR_NUMBER > 1) */
       osMutexWait(mag_mutex, osWaitForever);
+#if (COMPASS_SENSOR_NUMBER > 1)
       mag_data.X = 0;
       mag_data.Y = 0;
       mag_data.Z = 0;
@@ -122,16 +126,33 @@ void magnetics_task(void const *argument)
       mag_data.Y /= COMPASS_SENSOR_NUMBER;
       mag_data.Z /= COMPASS_SENSOR_NUMBER;
       NormalizeVector(&mag_data);
+#else
+      mag_data.X = ist_val[0].X;
+      mag_data.Y = ist_val[0].Y;
+      mag_data.Z = ist_val[0].Z;
+#endif /* (COMPASS_SENSOR_NUMBER > 1) */
       osMutexRelease(mag_mutex);
     }
 
     /* update message */
     time_now = xTaskGetTickCountFromISR();
 
+    /* send normalized data */
     if(msg_mag.msg_st & 0x01) {
       if((time_now - msg_mag_ts) >= 1000 / msg_mag.msg_rt) {
         msg_mag_ts = time_now;
-        mesg_send_mesg(&mag_data, MAG_DATA_MSG, sizeof(Vector3D));
+        mesg_send_mesg(&mag_data, msg_mag.msg_id, sizeof(Vector3D));
+      }
+    }
+    /* send origin data */
+    if(msg_mag_org.msg_st & 0x01) {
+      if((time_now - msg_mag_org_ts) > 1000 / msg_mag_org.msg_rt) {
+        msg_mag_org_ts = time_now;
+        if(msg_mag_org.msg_pr[0] < COMPASS_SENSOR_NUMBER) {
+          if(msg_mag_org.msg_pr[1] > (COMPASS_SENSOR_NUMBER - msg_mag_org.msg_pr[0]))
+            msg_mag_org.msg_pr[1] = COMPASS_SENSOR_NUMBER - msg_mag_org.msg_pr[0];
+          mesg_send_mesg(&ist_raw[msg_mag_org.msg_pr[0]], msg_mag_org.msg_id, msg_mag_org.msg_pr[0] * sizeof(_3AxisRaw));
+        }
       }
     }
   }
