@@ -12,6 +12,7 @@
 #include "gnss.h"
 #include "server.h"
 #include "mesg.h"
+#include "compass.h"
 #include "att_est_q.h"
 #include "filesystem.h"
 #include "filetransfer.h"
