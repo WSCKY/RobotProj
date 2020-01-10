@@ -23,12 +23,12 @@
 
 #define MESG_RATE_MAX                            (200) /* 200Hz */
 
-struct MsgInfo {
+__PACK_BEGIN struct MsgInfo {
   uint8_t msg_id;
   uint8_t msg_st;
   uint32_t msg_rt;
   uint8_t msg_pr[4];
-};
+} __PACK_END;
 
 struct MsgList {
   struct MsgInfo *info;
