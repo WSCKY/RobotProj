@@ -38,10 +38,10 @@ static osMutexId mag_mutex;
 
 static uint32_t msg_mag_ts = 0; // timestamp for this message
 //                      default:      id       disabled  10Hz    parameters
-static struct MsgInfo msg_mag = { MAG_DATA_MSG,    0,     10,   {0, 0, 0, 0} };
+static struct MsgInfo msg_mag = { MAG_DATA_MSG,    0,     10,   {0, 0, 0, 0, 0} };
 static uint32_t msg_mag_org_ts = 0; // timestamp for this message
 //                      default:           id          disabled  10Hz  start id    number of sensors
-static struct MsgInfo msg_mag_org = { MAG_ORG_DATA_MSG,    0,     10,     {0,    COMPASS_SENSOR_NUMBER, 0, 0} };
+static struct MsgInfo msg_mag_org = { MAG_ORG_DATA_MSG,    0,     10,     {0,    COMPASS_SENSOR_NUMBER, 0, 0, 0} };
 
 static struct MsgList msg_mag_org_list = { &msg_mag_org, NULL };
 static struct MsgList msg_list = { &msg_mag, &msg_mag_org_list };

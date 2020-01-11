@@ -132,7 +132,7 @@ static void mesg_decode_callback(kyLinkBlockDef *pRx)
     struct MsgList *pr = msg_list;
     while(pr != NULL) {
       if(pr->info->msg_id == pRx->buffer[0]) {
-        if(*((uint32_t *)&pRx->buffer[2]) <= MESG_RATE_MAX) // max rate check
+        if(pRx->buffer[2] <= MESG_RATE_MAX) // max rate check
           *(pr->info) = *(struct MsgInfo *)(&pRx->buffer[0]);
         break;
       } else {
