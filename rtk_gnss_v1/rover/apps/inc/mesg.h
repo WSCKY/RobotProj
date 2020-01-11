@@ -21,6 +21,7 @@
 #define FILE_TRANS_DATA_MSG                      (0xB1)
 #define FILE_TRANS_ACK_MSG                       (0xB2)
 
+#define MESG_RATE_MIN                            (1)   /* 1Hz */
 #define MESG_RATE_MAX                            (200) /* 200Hz */
 
 __PACK_BEGIN struct MsgInfo {
