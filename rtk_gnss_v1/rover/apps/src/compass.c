@@ -151,7 +151,7 @@ void magnetics_task(void const *argument)
         if(msg_mag_org.msg_pr[0] < COMPASS_SENSOR_NUMBER) {
           if(msg_mag_org.msg_pr[1] > (COMPASS_SENSOR_NUMBER - msg_mag_org.msg_pr[0]))
             msg_mag_org.msg_pr[1] = COMPASS_SENSOR_NUMBER - msg_mag_org.msg_pr[0];
-          mesg_send_mesg(&ist_raw[msg_mag_org.msg_pr[0]], msg_mag_org.msg_id, msg_mag_org.msg_pr[0] * sizeof(_3AxisRaw));
+          mesg_send_mesg(&ist_raw[msg_mag_org.msg_pr[0]], msg_mag_org.msg_id, msg_mag_org.msg_pr[1] * sizeof(_3AxisRaw));
         }
       }
     }
