@@ -138,14 +138,14 @@ void magnetics_task(void const *argument)
     time_now = xTaskGetTickCountFromISR();
 
     /* send normalized data */
-    if(msg_mag.msg_st & 0x01) {
+    if((msg_mag.msg_st & 0x01) && (msg_mag.msg_rt != 0)) {
       if((time_now - msg_mag_ts) >= 1000 / msg_mag.msg_rt) {
         msg_mag_ts = time_now;
         mesg_send_mesg(&mag_data, msg_mag.msg_id, sizeof(Vector3D));
       }
     }
     /* send origin data */
-    if(msg_mag_org.msg_st & 0x01) {
+    if((msg_mag_org.msg_st & 0x01) && (msg_mag_org.msg_rt != 0)) {
       if((time_now - msg_mag_org_ts) > 1000 / msg_mag_org.msg_rt) {
         msg_mag_org_ts = time_now;
         if(msg_mag_org.msg_pr[0] < COMPASS_SENSOR_NUMBER) {

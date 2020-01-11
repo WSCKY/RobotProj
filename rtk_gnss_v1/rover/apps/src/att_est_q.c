@@ -116,7 +116,7 @@ void att_est_q_task(void const *argument)
       /* update message */
       time_now = xTaskGetTickCountFromISR();
 
-      if(msg_quat.msg_st & 0x01) {
+      if((msg_quat.msg_st & 0x01) && (msg_quat.msg_rt != 0)) {
         if((time_now - msg_quat_ts) >= 1000 / msg_quat.msg_rt) {
           msg_quat_ts = time_now;
           mesg_send_mesg((const void *)&est_q, TYPE_QUAT_Info_Resp, sizeof(Quat_T));
