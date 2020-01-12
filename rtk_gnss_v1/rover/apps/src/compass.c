@@ -14,7 +14,7 @@ static const char *TAG = "MAG";
 
 #define COMPASS_SENSOR_NUMBER                    (2)
 
-#define COMPASS_CALIB_DATA_PATH                  "0:/calib/mag.dat"
+#define COMPASS_CALIB_DATA_PATH                  "mag.dat"/*"0:/calib/mag.dat"*/
 #define COS_PI_4                                 (0.70710678118655f)
 
 static const uint8_t IST8310_DEV_ADDR[COMPASS_SENSOR_NUMBER] = { 0x1A, 0x1C };
@@ -222,12 +222,14 @@ static int decode_calib_file(FIL *fp)
     ky_err(TAG, "read calib data error! -%d", ret);
     goto error;
   }
+  rtext[6] = rtext[5];
+  rtext[5] = 0;
   if(strcmp(".mcd\n", (const char *)rtext) != 0) {
-    ky_err(TAG, "file header error!");
+    ky_err(TAG, "file header error! %x,%x,%x,%x,%x", rtext[0], rtext[1], rtext[2], rtext[3], rtext[4]);
     goto error;
   }
-  if(rtext[5] != COMPASS_SENSOR_NUMBER) {
-    ky_err(TAG, "calib number error! -%d", rtext[5]);
+  if(rtext[6] != COMPASS_SENSOR_NUMBER) {
+    ky_err(TAG, "calib number error! -%d", rtext[6]);
     goto error;
   }
   for(i = 0; i < COMPASS_SENSOR_NUMBER; i ++) {
@@ -241,6 +243,11 @@ static int decode_calib_file(FIL *fp)
     if(checksum != rtext[0]) {
       ky_err(TAG, "checksum error! %d: %d, %d", i, rtext[0], checksum);
       goto error;
+    } else {
+      ky_info(TAG, "calibrate data got!");
+      memcpy(&calib_data[i], &rtext[1], sizeof(struct ElipCalibData));
+      ky_info(TAG, "%f, %f, %f", calib_data[i].offX, calib_data[i].offY, calib_data[i].offZ);
+      ky_info(TAG, "%f, %f, %f", calib_data[i].sclX, calib_data[i].sclY, calib_data[i].sclZ);
     }
   }
   return 0;
