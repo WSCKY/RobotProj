@@ -51,9 +51,9 @@ static int decode_calib_file(FIL *fp);
 
 void magnetics_task(void const *argument)
 {
-  uint32_t time_now;
+  uint32_t time_now, print_ts = 0;
 #if (COMPASS_SENSOR_NUMBER > 1)
-  float cos_alpha;
+  float cos_alpha = 0;
 #endif /* (COMPASS_SENSOR_NUMBER > 1) */
   Vector3D *ist_val = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(Vector3D));
   MagRawDef *ist_raw = kmm_alloc(COMPASS_SENSOR_NUMBER * sizeof(MagRawDef));
@@ -107,9 +107,9 @@ void magnetics_task(void const *argument)
 #if (COMPASS_SENSOR_NUMBER > 1)
       cos_alpha = ScalarProduct(&ist_val[0], &ist_val[1]);
       if(cos_alpha > COS_PI_4) {
-        mag_interference = 1;
-      } else {
         mag_interference = 0;
+      } else {
+        mag_interference = 1;
       }
 #endif /* (COMPASS_SENSOR_NUMBER > 1) */
       osMutexWait(mag_mutex, osWaitForever);
@@ -155,6 +155,12 @@ void magnetics_task(void const *argument)
         }
       }
     }
+#if (COMPASS_SENSOR_NUMBER > 1)
+    if(time_now - print_ts > 1000) {
+    	print_ts = time_now;
+    	ky_info(TAG, "ca = %f, a = %f, I = %u", cos_alpha, acosf(cos_alpha) * RAD_TO_DEG, mag_interference);
+    }
+#endif /* (COMPASS_SENSOR_NUMBER > 1) */
   }
 
 error_exit:
