@@ -14,6 +14,7 @@
 #define GYR_ORG_DATA_MSG                         (0xC0)
 #define ACC_ORG_DATA_MSG                         (0xC1)
 #define MAG_ORG_DATA_MSG                         (0xC2)
+#define MAG_CAL_DATA_MSG                         (0xC5)
 
 #define MESG_SUBSCRIBE_REQ_MSG                   (0xEE)
 
