@@ -73,7 +73,7 @@ void magnetics_task(void const *argument)
      (ist_raw == NULL) || \
      (ist_dev == NULL) || \
      (calib_data == NULL)) {
-	ky_err(TAG, "ist8310 memory alloc failed. EXIT!");
+    ky_err(TAG, "ist8310 memory alloc failed. EXIT!");
     goto error_exit;
   }
 
