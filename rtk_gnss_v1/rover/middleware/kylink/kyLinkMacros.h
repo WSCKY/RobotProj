@@ -49,7 +49,7 @@ typedef unsigned           int uint32_t;
 #define _UINT32_T_DECLARED
 #endif
 
-#define kyNULL                                   (0UL)
+#define kyNULL                                   ((void *)0UL)
 
 #endif /* MIDDLEWARE_KYLINK_KYLINKMACROS_H_ */
 
